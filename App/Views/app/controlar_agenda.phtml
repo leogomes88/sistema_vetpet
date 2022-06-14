@@ -1,0 +1,646 @@
+<script> 
+
+    function limpa_layout_tabela(){
+
+        $('.linha').remove()
+        $('.nome_cabecalho').remove()
+        $('#botao_bloquear').addClass('d-none')       
+        $('#botao_liberar').addClass('d-none')
+        $('#botao_cancelar').addClass('d-none')
+    }
+
+    function set_menu_tabela(apaga_botao1, apaga_link1, apaga_botao2, apaga_link2, acende_botao, acende_link){       
+
+        $(apaga_botao1).removeClass('active')
+        $(apaga_link1).removeClass('text-white').addClass('text-dark')
+        $(apaga_botao2).removeClass('active')
+        $(apaga_link2).removeClass('text-white').addClass('text-dark')
+        $(acende_botao).addClass('active')
+        $(acende_link).removeClass('text-dark').addClass('text-white')
+        $('#periodo').val('dia') 
+    }
+
+    function gerar_tabela_consultas(intervalo){  
+        
+        limpa_layout_tabela()                
+
+        $.ajax({
+
+            type: 'GET',
+            url:"/recuperar_consultas",
+            data: `intervalo=${intervalo}`,
+            dataType: 'json',
+            beforeSend: function(){
+
+                $('#area_dados').append('<img class="rounded mx-auto d-block" id="load" src="imagens/loading.gif" alt="gif_loading">');
+            },
+            complete: function(){
+
+                $('#load').remove();
+            },            
+            success: (consultas) =>{  
+                
+                $('#botao_cancelar').removeClass('d-none')
+
+                if(consultas.length == 0){
+
+                    $('#tabela_vazia').removeClass('d-none')
+                    $('#area_tabela').addClass('d-none')                            
+
+                }else{
+
+                    $('#cabecalho_tabela').append('<th class="nome_cabecalho">Marcar</th>'+
+                    '<th class="nome_cabecalho">Data</th>'+
+                    '<th class="nome_cabecalho">Horário</th>'+
+                    '<th class="nome_cabecalho">Pet</th>'+
+                    '<th class="nome_cabecalho">Tutor</th>'+
+                    '<th class="nome_cabecalho">Ações</th>')                     
+                
+                    const data_hora_atual = new Date();              
+
+                    consultas.forEach(function(consulta){                    
+
+                        let data_consulta = consulta.data.split("-");
+
+                        data_consulta = data_consulta[2] + '/' + data_consulta[1] + '/' + data_consulta[0] 
+
+                        const data_horario_limite = new Date(consulta.data + ' ' + consulta.horario);                    
+
+                        data_horario_limite.setDate(data_horario_limite.getDate() - 1)                    
+
+                        if (data_horario_limite > data_hora_atual) {
+                            
+                            $('#linha_tabela_consulta').append('<tr class="linha">'+
+                                                                '<td><input class="ml-3" type="checkbox" name="id_consulta" value="' + consulta.id_consulta + '"></td>'+
+                                                                '<td>' + data_consulta + '</td>'+
+                                                                '<td>' + consulta.horario + '</td>'+
+                                                                '<td>' + consulta.nome_pet + '</td>'+
+                                                                '<td>' + consulta.nome_tutor + '</td>'+
+                                                                '<td><button onclick="cancelar(' + consulta.id_consulta + ')" type="button" class="btn btn-danger">Cancelar</button></td>'+                                      
+                                                        '</tr>')
+                        }else{
+
+                            $('#linha_tabela_consulta').append('<tr class="linha">'+
+                                                                '<td>n/a</td>'+
+                                                                '<td>' + data_consulta + '</td>'+
+                                                                '<td>' + consulta.horario + '</td>'+
+                                                                '<td>' + consulta.nome_pet + '</td>'+
+                                                                '<td>' + consulta.nome_tutor + '</td>'+  
+                                                                '<td>n/a</td>'+                                    
+                                                        '</tr>')
+                        }                   
+
+                    })                     
+                   
+                    $('#tabela_vazia').addClass('d-none')
+                    $('#area_tabela').removeClass('d-none')
+                }
+            }, 
+            error: (erro) =>{
+                
+               $('#conteudo').html('<div class="alert alert-danger text-center" role="alert">' +
+                                        'Problemas de conexão com o banco de dados! Por favor tente novamente mais tarde.' +
+                                    '</div>')
+            }
+        });
+    }
+
+    function gerar_tabela_h_livres(intervalo){    
+        
+        limpa_layout_tabela()              
+
+        $.ajax({
+
+            type: 'GET',
+            url:"/recuperar_horarios_livres",
+            data: `intervalo=${intervalo}`,
+            dataType: 'json',
+            beforeSend: function(){
+
+                $('#area_dados').append('<img class="rounded mx-auto d-block" id="load" src="imagens/loading.gif" alt="gif_loading">');
+            },
+            complete: function(){
+
+                $('#load').remove();
+            },
+            success: (horarios_livres) =>{                         
+                    
+                $('#botao_bloquear').removeClass('d-none')
+                
+                if(horarios_livres.length == 0){
+
+                    $('#tabela_vazia').removeClass('d-none')
+                    $('#area_tabela').addClass('d-none')                            
+
+                }else{
+
+                    $('#cabecalho_tabela').append('<th class="nome_cabecalho">Marcar</th>'+
+                    '<th class="nome_cabecalho">Data</th>'+
+                    '<th class="nome_cabecalho">Horário</th>'+
+                    '<th class="nome_cabecalho">Ações</th>')                      
+
+                    const data_hora_atual = new Date();                
+
+                    horarios_livres.forEach(function(horario_livre){
+
+                        let data_horario_livre = horario_livre.data.split("-");
+
+                        data_horario_livre = data_horario_livre[2] + '/' + data_horario_livre[1] + '/' + data_horario_livre[0]
+
+                        const data_horario_limite = new Date(horario_livre.data + ' ' + horario_livre.horario); 
+                        
+                        if(data_horario_limite > data_hora_atual){
+
+                            $('#linha_tabela_consulta').append('<tr class="linha">'+
+                                                                '<td><input class="ml-3" type="checkbox" name="data_horario" value="'+ horario_livre.data + ' ' + horario_livre.horario +'"></td>'+
+                                                                '<td>' + data_horario_livre + '</td>'+
+                                                                '<td>' + horario_livre.horario + '</td>'+ 
+                                                                `<td><button onclick="bloquear('${horario_livre.data} ${horario_livre.horario}')" type="button" class="btn btn-warning">Bloquear</button></td>`+                                                           
+                                                        '</tr>')
+                        }else{
+
+                            $('#linha_tabela_consulta').append('<tr class="linha">'+
+                                                                '<td>n/a</td>'+
+                                                                '<td>' + data_horario_livre + '</td>'+
+                                                                '<td>' + horario_livre.horario + '</td>'+ 
+                                                                '<td>n/a</td>'+                                                           
+                                                        '</tr>')
+                        }                    
+
+                    })
+
+                    $('#tabela_vazia').addClass('d-none')
+                    $('#area_tabela').removeClass('d-none')
+                }
+            }, 
+            error: (erro) =>{
+
+                $('#conteudo').html('<div class="alert alert-danger text-center" role="alert">' +
+                                        'Problemas de conexão com o banco de dados! Por favor tente novamente mais tarde.' +
+                                    '</div>')
+            }
+        });
+    }
+
+    function gerar_tabela_h_bloqueados(intervalo){  
+        
+        limpa_layout_tabela()       
+
+        $.ajax({
+
+            type: 'GET',
+            url:"/recuperar_horarios_bloqueados",
+            data: `intervalo=${intervalo}`,
+            dataType: 'json',
+            beforeSend: function(){
+
+                $('#area_dados').append('<img class="rounded mx-auto d-block" id="load" src="imagens/loading.gif" alt="gif_loading">');
+            },
+            complete: function(){
+
+                $('#load').remove();
+            },
+            success: (horarios_bloqueados) =>{   
+
+                $('#botao_liberar').removeClass('d-none')  
+
+                if(horarios_bloqueados.length == 0){
+
+                    $('#tabela_vazia').removeClass('d-none')
+                    $('#area_tabela').addClass('d-none')                            
+
+                }else{                    
+
+                    $('#cabecalho_tabela').append('<th class="nome_cabecalho">Marcar</th>'+
+                    '<th class="nome_cabecalho">Data</th>'+
+                    '<th class="nome_cabecalho">Horário</th>'+
+                    '<th class="nome_cabecalho">Ações</th>') 
+
+                    const data_hora_atual = new Date();                
+
+                    horarios_bloqueados.forEach(function(horario_bloqueado){
+
+                        let data_horario_bloqueado = horario_bloqueado.data.split("-");
+
+                        data_horario_bloqueado = data_horario_bloqueado[2] + '/' + data_horario_bloqueado[1] + '/' + data_horario_bloqueado[0]
+
+                        const data_horario_limite = new Date(horario_bloqueado.data + ' ' + horario_bloqueado.horario); 
+                        
+                        if(data_horario_limite > data_hora_atual){
+
+                            $('#linha_tabela_consulta').append('<tr class="linha">'+
+                                                                '<td><input class="ml-3" type="checkbox" name="id_horario_bloqueado" value="' + horario_bloqueado.id_consulta + '"></td>'+
+                                                                '<td>' + data_horario_bloqueado + '</td>'+
+                                                                '<td>' + horario_bloqueado.horario + '</td>'+ 
+                                                                '<td><button onclick="liberar(' + horario_bloqueado.id_consulta + ')" type="button" class="btn btn-primary">Liberar</button></td>'+                                                           
+                                                        '</tr>')
+                        }else{
+
+                            $('#linha_tabela_consulta').append('<tr class="linha">'+
+                                                                '<td>n/a</td>'+
+                                                                '<td>' + data_horario_bloqueado + '</td>'+
+                                                                '<td>' + horario_bloqueado.horario + '</td>'+ 
+                                                                '<td>n/a</td>'+                                                           
+                                                        '</tr>')
+                        }                    
+
+                    })   
+
+                    $('#tabela_vazia').addClass('d-none')
+                    $('#area_tabela').removeClass('d-none')
+                }               
+            }, 
+            error: (erro) =>{
+
+                $('#conteudo').html('<div class="alert alert-danger text-center" role="alert">' +
+                                        'Problemas de conexão com o banco de dados! Por favor tente novamente mais tarde.' +
+                                    '</div>')
+            }
+        });
+    }
+
+    function cancelar(id_consulta){       
+
+        var confirmacao = confirm('Deseja realmente cancelar essa consulta?')
+
+        if(confirmacao){
+
+            var consulta = [];                          
+                
+            consulta.push(id_consulta)
+
+            $.ajax({
+
+                type: 'POST',
+                url:"/cancelar_consultas",
+                data: 'consultas=' + consulta,
+                dataType: 'json',
+                success: (resposta) =>{                   
+                        
+                    let intervalo = $('#periodo').val()
+
+                    gerar_tabela_consultas(intervalo)
+
+                    alert('Consulta cancelada com sucesso.')                    
+                }, 
+                error: (erro) =>{
+
+                    $('#conteudo').html('<div class="alert alert-danger text-center" role="alert">' +
+                                        'Problemas de conexão com o banco de dados! Por favor tente novamente mais tarde.' +
+                                    '</div>')
+                }
+            });
+        }             
+    }
+
+    function bloquear(data_horario){                        
+
+        var confirmacao = confirm('Deseja realmente bloquear esse horário?') 
+
+        if(confirmacao){   
+            
+            var data_horario2 = [];                           
+                
+            data_horario2.push(data_horario) 
+
+            $.ajax({
+
+                type: 'POST',
+                url:"/bloquear_horarios_livres",
+                data: 'datas_horarios_livres=' + data_horario2,
+                dataType: 'json',
+                success: (resposta) =>{                   
+                        
+                    let intervalo = $('#periodo').val()
+
+                    gerar_tabela_h_livres(intervalo)
+
+                    alert('Horário bloqueado com sucesso.')                                    
+                }, 
+                error: (erro) =>{
+
+                    $('#conteudo').html('<div class="alert alert-danger text-center" role="alert">' +
+                                        'Problemas de conexão com o banco de dados! Por favor tente novamente mais tarde.' +
+                                    '</div>')
+                }
+            });
+        }        
+    }
+
+    function liberar(id_consulta){          
+
+        var confirmacao = confirm('Deseja realmente liberar esse horário?') 
+
+        if(confirmacao){   
+            
+            var consulta = [];                                  
+            
+            consulta.push(id_consulta)
+
+            $.ajax({
+
+                type: 'POST',
+                url:"/liberar_horarios_bloqueados",
+                data: 'horarios_bloqueados=' + consulta,
+                dataType: 'json',
+                success: (resposta) =>{             
+                        
+                    let intervalo = $('#periodo').val()
+
+                    gerar_tabela_h_bloqueados(intervalo)
+
+                    alert('Horário liberado com sucesso.')                                     
+                }, 
+                error: (erro) =>{
+
+                    $('#conteudo').html('<div class="alert alert-danger text-center" role="alert">' +
+                                        'Problemas de conexão com o banco de dados! Por favor tente novamente mais tarde.' +
+                                    '</div>')
+                }
+            });
+        }        
+    }
+
+    $(document).ready(() => { 
+
+        let intervalo = 'dia'
+
+        gerar_tabela_consultas(intervalo)
+        
+        $('#periodo').on('change', e => {            
+
+            let intervalo = $(e.target).val()
+            
+            if($('#lista_consultas').hasClass('active')){
+
+                gerar_tabela_consultas(intervalo)
+            }
+
+            if($('#lista_h_livres').hasClass('active')){
+
+                gerar_tabela_h_livres(intervalo)
+            }
+
+            if($('#lista_h_bloqueados').hasClass('active')){
+
+                gerar_tabela_h_bloqueados(intervalo)
+            }
+        });
+
+        $('#link_consultas').click(() => {   
+
+            set_menu_tabela('#lista_h_livres', '#link_horarios_livres', '#lista_h_bloqueados', '#link_horarios_bloqueados', '#lista_consultas', '#link_consultas')
+            
+            gerar_tabela_consultas(intervalo)                   
+
+        });
+
+        $('#link_horarios_livres').click(() => {    
+
+            set_menu_tabela('#lista_consultas', '#link_consultas', '#lista_h_bloqueados', '#link_horarios_bloqueados', '#lista_h_livres', '#link_horarios_livres')
+            
+            gerar_tabela_h_livres(intervalo)                   
+
+        });
+
+        $('#link_horarios_bloqueados').click(() => {  
+            
+            set_menu_tabela('#lista_consultas', '#link_consultas', '#lista_h_livres', '#link_horarios_livres', '#lista_h_bloqueados', '#link_horarios_bloqueados')
+            
+            gerar_tabela_h_bloqueados(intervalo)                      
+
+        });      
+
+        $('#cancelar_marcados').click(() =>{            
+            
+            var boxs_marcados = [];
+
+            var boxs = document.getElementsByName('id_consulta');            
+
+            for (var i=0;i<boxs.length;i++){                
+                
+                if (boxs[i].checked == true){                      
+                   
+                    boxs_marcados.push(boxs[i].value)               
+                }
+            }            
+
+            if(boxs_marcados != '') {
+
+                var confirmacao = confirm('Deseja realmente cancelar essa(s) consulta(s)?')
+
+                if(confirmacao){
+
+                    $.ajax({
+
+                        type: 'POST',
+                        url:"/cancelar_consultas",
+                        data: 'consultas=' + boxs_marcados,
+                        dataType: 'json',
+                        success: (resposta) =>{                              
+                                
+                            let intervalo = $('#periodo').val()
+
+                            gerar_tabela_consultas(intervalo)
+
+                            alert('Consulta(s) cancelada(s) com sucesso.')                            
+                        }, 
+                        error: (erro) =>{
+
+                            $('#conteudo').html('<div class="alert alert-danger text-center" role="alert">' +
+                                        'Problemas de conexão com o banco de dados! Por favor tente novamente mais tarde.' +
+                                    '</div>')
+                        }
+                    });
+                }               
+
+            }else{
+
+                alert('Nenhuma consulta selecionada para o cancelamento.')
+            }       
+        })
+
+        $('#bloquear_marcados').click(() =>{            
+
+            var boxs_marcados = [];
+
+            var boxs = document.getElementsByName('data_horario');            
+
+            for (var i=0;i<boxs.length;i++){                
+                
+                if (boxs[i].checked == true){                      
+                   
+                    boxs_marcados.push(boxs[i].value)               
+                }
+            }      
+
+            if(boxs_marcados != '') {
+
+                var confirmacao = confirm('Deseja realmente bloquear esse(s) horário(s)?') 
+
+                if(confirmacao){     
+
+                    $.ajax({
+
+                        type: 'POST',
+                        url:"/bloquear_horarios_livres",
+                        data: 'datas_horarios_livres=' + boxs_marcados,
+                        dataType: 'json',
+                        success: (resposta) =>{                        
+                                
+                            let intervalo = $('#periodo').val()
+
+                            gerar_tabela_h_livres(intervalo)
+
+                            alert('Horário(s) bloqueado(s) com sucesso.')                                            
+                        }, 
+                        error: (erro) =>{
+
+                            $('#conteudo').html('<div class="alert alert-danger text-center" role="alert">' +
+                                        'Problemas de conexão com o banco de dados! Por favor tente novamente mais tarde.' +
+                                    '</div>')
+                        }
+                    });
+                }
+
+            }else{
+
+                alert('Nenhum horário foi selecionado para o bloqueio.')
+            }
+        })
+
+        $('#liberar_marcados').click(() =>{            
+
+            var boxs_marcados = [];
+
+            var boxs = document.getElementsByName('id_horario_bloqueado');            
+
+            for (var i=0;i<boxs.length;i++){                
+                
+                if (boxs[i].checked == true){                      
+                
+                    boxs_marcados.push(boxs[i].value)               
+                }
+            }      
+
+            if(boxs_marcados != '') {
+
+                var confirmacao = confirm('Deseja realmente liberar esse(s) horário(s)?') 
+
+                if(confirmacao){     
+
+                    $.ajax({
+
+                        type: 'POST',
+                        url:"/liberar_horarios_bloqueados",
+                        data: 'horarios_bloqueados=' + boxs_marcados,
+                        dataType: 'json',
+                        success: (resposta) =>{                                 
+                                
+                            let intervalo = $('#periodo').val()
+
+                            gerar_tabela_h_bloqueados(intervalo)
+
+                            alert('Horário(s) liberado(s) com sucesso.')                                               
+                        }, 
+                        error: (erro) =>{
+
+                            $('#conteudo').html('<div class="alert alert-danger text-center" role="alert">' +
+                                        'Problemas de conexão com o banco de dados! Por favor tente novamente mais tarde.' +
+                                    '</div>')
+                        }
+                    });
+                }
+
+            }else{
+
+                alert('Nenhum horário foi selecionado para a liberação.')
+            }
+        })
+    });      
+
+</script>
+
+<section id="conteudo"> 
+
+    <div class="container">        
+        
+        <div class="mb-4 mt-3 text-center">
+            <h3 class="text-secondary font-weight-bold">Controle de agenda</h3>
+        </div>        
+
+        <div class="row">
+    
+            <div class="col-md-3 mt-3">
+                <ul class="list-group mb-4">
+                    <li id="lista_consultas" class="list-group-item p-0 active"><a id="link_consultas" class="text-white d-block p-3" href="#">Consultas</a></li>
+                    <li id="lista_h_livres" class="list-group-item p-0"><a id="link_horarios_livres" class="text-dark d-block p-3" href="#">Horários livres</a></li>
+                    <li id="lista_h_bloqueados" class="list-group-item p-0"><a id="link_horarios_bloqueados" class="text-dark d-block p-3" href="#">Horários bloqueados</a></li>                                                        
+                </ul>
+            </div>
+            
+            <div class="col-md-9 p-3">
+                <div id="area_dados" class="border border-dark p-3">
+                    <div class="row">
+                        
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label class="text-dark form-label" for="horario_consulta">Agenda</label>
+                                <select class="form-control" id="periodo">
+
+                                    <option value="dia" selected>Do dia</option> 
+                                    <option value="quinzena">Próximos 15 dias</option> 
+                                    <option value="mês">Próximos 30 dias</option> 
+
+                                </select>                                            
+                            </div>   
+                            
+                            <div id="botao_cancelar" class="mt-5">                                            
+                                <button id="cancelar_marcados" type="button" class="btn btn-danger">
+                                    Cancelar consultas
+                                </button>
+                                <small class="form-text text-dark mt-3">*Só poderão ser canceladas consultas com até 24h de antecedência. Ao cancelar consultas os horários serão automaticamente bloqueados, impedindo o agendamento de novas consultas.</small>
+                                <hr>
+                                <label class="text-dark font-weight-bold mt-5" for="horario_consulta">CONSULTAS AGENDADAS</label>
+                            </div>
+                            <div id="botao_bloquear" class="mt-5 d-none">
+                                <button id="bloquear_marcados" type="button" class="btn btn-warning">
+                                    Bloquear horários marcados
+                                </button>
+                                <small class="form-text text-dark mt-3">*Ao bloquear, os horários ficaram indisponíveis para novas consultas.</small>
+                                <hr>
+                                <label class="text-dark font-weight-bold mt-5" for="horario_consulta">HORÁRIOS LIVRES</label>
+                            </div>
+                            <div id="botao_liberar" class="mt-5 d-none">
+                                <button id="liberar_marcados" type="button" class="btn btn-primary">
+                                    Liberar horários marcados
+                                </button>
+                                <small class="form-text text-dark mt-3">*Ao liberar, os horários ficaram disponíveis para novas consultas.</small>
+                                <hr>
+                                <label class="text-dark font-weight-bold mt-5" for="horario_consulta">HORÁRIOS BLOQUEADOS</label>
+                            </div>                                        
+                        </div>                                           
+                    </div>
+
+                    <div id="tabela_vazia" class="alert alert-info d-none" role="alert">
+                        Nenhum resultado encontrado.
+                    </div>                  
+
+                    <div id="area_tabela" class="row d-none p-3">
+
+                        <div class="table-responsive mt-1">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr id="cabecalho_tabela"></tr>                                                                                                        
+                                </thead>
+                                <tbody id="linha_tabela_consulta"></tbody>
+                            </table>
+                        </div>
+                        
+                    </div>                       
+                </div>
+            </div>
+        </div>                    
+       
+    </div>
+</section>

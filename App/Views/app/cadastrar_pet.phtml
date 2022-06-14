@@ -1,0 +1,57 @@
+<script src="js/mascaras.js"></script>
+
+<section id="conteudo" class="d-flex">
+  <div class="container align-self-center">
+    <div class="row">
+      <div class="col-md-4 mx-auto bg-white rounded">
+
+        <div class="text-primary text-center mb-5 mt-4">
+          <h2 class="font-weight-bold">Cadastro | Pet</h2>
+        </div>        
+          
+        <form action="/cadastrar_pet2" method="post">
+          <div class="form-group">
+            <label class="text-dark mr-2 pt-2" for="nome">Nome</label>
+            <input id="nome" required value="<?= $this->view->pet['nome']; ?>" name="nome" type="text" class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label class="text-dark mr-2 pt-2" for="data_nasc">Data de nascimento</label>
+            <input id="data_nasc" required value="<?= $this->view->pet['data_nasc']; ?>" type="text" name="data_nasc" placeholder="dd/mm/aaaa" class="form-control">
+          </div>    
+          
+          <div class="form-group">
+            <label class="text-dark mr-2 pt-2" for="especie">Espécie</label>
+            <input id="especie" required value="<?= $this->view->pet['especie']; ?>" name="especie" type="text" class="form-control">
+          </div> 
+
+          <div class="form-group">
+            <label class="text-dark mr-2 pt-2" for="raca">Raça</label>
+            <input id="raca" required value="<?= $this->view->pet['raca']; ?>" name="raca" type="text" class="form-control">
+          </div>                   
+          
+          <div class="form-group">
+            <label class="text-dark mr-2 pt-2" for="porte">Porte</label>
+            <select class="form-control" value="<?= $this->view->pet['porte']; ?>" name="porte" id="porte" required>
+              <option selected value="" disabled>Selecione...</option>
+              <option value="pequeno">Pequeno</option>
+              <option value="medio">Médio</option>
+              <option value="grande">Grande</option>
+            </select>
+          </div>
+          
+          <button type="submit" class="btn btn-primary btn-block mt-5 mb-4">Cadastrar</button>
+
+          <?php if($this->view->erroCadastro){ ?>
+
+            <small class="form-text text-danger mb-3">*Erro ao tentar realizar o cadastro, verifique se os campos foram preenchidos corretamente ou se o pet em questão já possui cadastro.</small>  
+
+          <? } ?>
+
+        </form>
+            
+      </div>
+    </div>
+  </div>
+
+</section>

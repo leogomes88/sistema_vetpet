@@ -1,0 +1,251 @@
+/*CSS SISTEMA VETERINÁRIA*/
+
+/*PADRÕES GERAIS*/
+
+*{
+	margin: 0;
+	padding: 0;
+	box-sizing: inherit;
+}
+
+html{
+
+	box-sizing: border-box;
+}
+
+html, body, #conteudo{
+	
+	overflow-x: hidden;	
+	scroll-behavior: smooth;
+}
+
+body{
+
+	display: flex;
+  	min-height: 100vh;
+  	flex-direction: column;
+	background: #F0F8FF;	
+	font-family: Helvetiva, Arial, sans-serif;
+}
+
+#conteudo{
+	
+	flex-grow: 1;
+	padding-top: 15px;
+	padding-bottom: 15px;	
+}
+
+.alinhar_texto{
+
+	padding-top: 3px;
+}
+
+.list-group-item.active{
+
+	background-color: #17A2B8;
+	border-color: #17A2B8;
+}
+
+.titulo{
+
+	padding-top: 12px;
+	padding-bottom: 20px;
+	color: rgb(60, 54, 54);
+	font-size: 2em;
+	font-weight: 800;
+}
+
+.img{
+
+	height: 100%;
+	width: 100%;
+	object-fit: cover;	
+	border-radius: 20px;
+	opacity: 0.8;	
+}
+
+/*CABEÇALHO*/
+
+.cabecalho{
+
+	background-color: #4682B4;	
+}
+
+#logo{
+
+	font-family: "Lucida Console", Courier, monospace;
+	font-size: 2.5em;
+	font-weight: 700;
+	letter-spacing: -0.04em;
+	color: white;
+}
+
+#saudacao{
+
+	margin-top: 7px;
+	margin-right: 72px;
+}
+
+.navbar-light .navbar-nav .nav-link{
+
+	color: white;
+}
+
+.navbar-light .navbar-nav .nav-link:hover{
+
+	color: #A9A9A9;
+}
+
+.navbar-light .navbar-toggler{
+    color: white;
+    border-color: white;
+}
+
+.divisor{
+
+	width: 1px;
+	background: white;
+	margin: 10px 15px;
+}
+
+/*RODAPÉ*/
+
+footer{
+	
+	padding-top: 10px ;			
+	background: #4682B4;
+	position: static;		
+	bottom: 0;			
+}
+
+footer p{
+
+	color: white;
+	margin: 0;
+	padding: 0;		
+}
+
+/*PAINEL VETERINÁRIO E CLIENTE*/
+
+.menu_painel{
+
+	display: flex;
+	justify-content: space-around;	
+	flex-wrap: wrap;	
+	gap: 35px;
+	margin-top: 35px;
+	padding-bottom: 45px;
+}
+
+.caixa_menu{
+
+	height: 90px;
+	width: 300px;
+	text-align: center;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: #17A2B8;	
+}
+
+.caixa_menu:hover{
+
+	background-color: #117a8b;
+}
+
+/*DASHBOARD*/
+
+#conteudo_dashboard{
+	
+	display: flex;
+	align-items: stretch;
+	flex-grow: 1;	
+}
+
+#icone_dashboard{
+
+	font-size: 25px;
+}
+
+.itens_menu_dashboard{
+
+	display: flex;
+	height: 70px;
+	background-color: #2e353d;
+	border-bottom: 1px solid #6c757d;
+	justify-content: center;
+	align-items: center;
+	color: white;
+}
+
+.itens_menu_dashboard:hover{
+		
+	color: white;
+}
+
+.item_menu_dashboard_ativo{
+
+	background-color: #6C757D;
+	color: white;
+}
+
+.load_pequeno{
+
+	width: 25px;
+}
+
+/*SELETORES*/
+
+li{
+	list-style-type: none;
+	margin-right: 5px;
+}
+
+a:hover{
+
+	text-decoration: none;
+}
+
+/*// Extra small devices (portrait phones, less than 576px*/
+@media (max-width: 575.98px){
+
+	#logo{
+		
+		font-size: 2em;		
+	}
+
+	.titulo{
+		
+		font-size: 1.3em;		
+	}	
+}
+
+/*// Small devices (landscape phones, 576px and up)*/
+@media (min-width: 576px) and (max-width: 767.98px){		
+
+	.titulo{
+		
+		font-size: 1.5em;		
+	}	
+}
+
+/*// Medium devices (tablets, 768px and up)*/
+@media (min-width: 768px) and (max-width: 991.98px){		
+
+	.titulo{
+		
+		font-size: 1.5em;		
+	}		
+}
+
+/*// Large devices (desktops, 992px and up)*/
+@media (min-width: 992px) and (max-width: 1199.98px){
+
+	
+}
+
+/*// Extra large devices (large desktops, 1200px and up)*/
+@media (min-width: 1200px){
+	
+	
+}

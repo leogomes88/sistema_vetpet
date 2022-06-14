@@ -1,0 +1,125 @@
+<script>      
+
+    $(document).ready(() => {  
+
+        $("#pesquisa").on("input", function(){
+            var regexp = /[^a-zA-Záãâéêíîóôõú\s]/g;
+            if(this.value.match(regexp)){
+                $(this).val(this.value.replace(regexp,''));
+            }
+        });
+        
+        $('#botao_pesquisar').click(() =>{         
+
+            var pesquisa = document.getElementById('pesquisa').value    
+
+            if(pesquisa != ''){
+
+                $.ajax({
+
+                    type: 'GET',
+                    url:"/pesquisar_pets",
+                    data: `pesquisa=${pesquisa}`,
+                    dataType: 'json',
+                    beforeSend: function(){
+
+                        $('#sem_resultado').addClass('d-none')
+                        $('#area_resultado').addClass('d-none')
+                        $('#area_pesquisa').append('<img class="rounded mx-auto d-block" id="load" src="imagens/loading.gif" alt="gif_loading">');
+                    },
+                    complete: function(){
+
+                        $('#load').remove();
+                    },
+                    success: (pets) =>{ 
+                        
+                        if(pets.length == 0){
+
+                            $('#sem_resultado').removeClass('d-none')                         
+
+                        }else{
+
+                            $('#area_resultado').removeClass('d-none')
+                            $('.linha').remove()                                    
+
+                            pets.forEach(function(pet){                    
+
+                                $('#linha_tabela_consulta').append('<tr class="linha">'+
+                                                                    '<td>' + pet.nome_pet + '</td>'+
+                                                                    '<td>' + pet.nome_tutor + '</td>'+ 
+                                                                    `<td><a href="/prontuario?id_pet=${pet.id_pet}&nome_pet=${pet.nome_pet}&nome_tutor=${pet.nome_tutor}&data_nasc=${pet.data_nasc}&raca=${pet.raca}&especie=${pet.especie}&porte=${pet.porte}" class="btn btn-primary" role="button">Selecionar</a></td>` +                                                           
+                                                            '</tr>')                                 
+
+                            })   
+                        }                 
+                    }, 
+                    error: (erro) =>{
+
+                        $('#conteudo').html('<div class="alert alert-danger text-center" role="alert">' +
+                                        'Problemas de conexão com o banco de dados! Por favor tente novamente mais tarde.' +
+                                    '</div>')
+                    }
+                });
+            }          
+        })
+
+        $('#botao_limpar').click(() =>{         
+
+            document.getElementById('pesquisa').value = '' 
+            $('#area_resultado').addClass('d-none')
+            $('#sem_resultado').addClass('d-none')              
+        })        
+        
+    });     
+
+</script>
+
+<section id="conteudo">
+    <div class="container">        
+
+        <div class="mb-4 mt-3 text-center">
+            <h3 class="text-secondary font-weight-bold">Controle de consultas</h3>
+        </div>                
+
+        <div class="row">                   
+            
+            <div class="col-md-7 mx-auto p-3">
+
+                <div id="area_pesquisa" class="border border-dark p-3">
+                    <div class="form-group row">                                    
+                        <div id="input_pesquisa" class="col-sm-7">
+                            <input id="pesquisa" name="pesquisa" type="text" class="form-control">
+                            <small class="form-text text-dark mt-2 mb-3">*Pesquise pelo nome do tutor ou do pet</small>
+                        </div>
+                        <div class="col-sm-5">
+                            <button id="botao_pesquisar" type="button" class="btn btn-info mb-3 mr-2">Pesquisar</button>
+                            <button id="botao_limpar" type="button" class="btn btn-secondary mb-3">Limpar</button>
+                        </div>                                    
+                    </div>
+
+                    <div id="sem_resultado" class="alert alert-danger d-none" role="alert">
+                        Nenhum resultado encontrado.
+                    </div>
+
+                    <div id="area_resultado" class="row d-none p-3">
+                        <label class="text-dark font-weight-bold ml-3" for="resultado">Resultado da pesquisa</label>
+                        <div class="table-responsive mt-4">                                        
+                            <table id="resultado" class="table table-sm">
+                                <thead>
+                                    <tr id="cabecalho_tabela">
+                                        <th class="nome_cabecalho">Pet</th>
+                                        <th class="nome_cabecalho">Tutor</th>
+                                        <th class="nome_cabecalho">Ações</th>
+                                    </tr>                                                                                                        
+                                </thead>
+                                <tbody id="linha_tabela_consulta"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>    
+            </div>
+        </div>   
+       
+    </div>
+</section>

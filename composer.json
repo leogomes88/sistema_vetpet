@@ -1,0 +1,21 @@
+{
+	"name": "sistema_vetpet",
+	"require": {
+
+		"php" : ">=7.0"
+	},
+	"authors": [		
+		{
+			"name": "Leonardo Henrique Gomes",
+			"email": "leonard56gle@gmail.com"
+		}
+	],
+	"autoload": {
+
+		"psr-4": {
+
+			"App\\": "App/",
+			"MF\\": "vendor/MF/"
+		}
+	}
+}

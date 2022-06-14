@@ -1,0 +1,169 @@
+<script>    
+
+    $(document).ready(() => {        
+
+        $('#data_consulta').on('change', e => {
+
+            let dia = new Date($(e.target).val()).getUTCDay();
+
+            if([6,0].includes(dia)){
+                
+                $(e.target).val('')
+
+                $('#alerta_fds').remove()
+
+                $('#data').append('<div id="alerta_fds" class="alert alert-danger" role="alert">Não marcamos em fins de semana, por favor escolha outra data.</div>')
+
+                $('.opcoes_horarios').remove()            
+
+                $('#horario_consulta').append('<option class="opcoes_horarios" value="" selected disabled>Selecione...</option>')                  
+
+                $('.opcoes_veterinarios').remove()            
+
+                $('#veterinarios_d').append('<option class="opcoes_veterinarios" value="" selected disabled>Selecione...</option>')
+                              
+            }else{
+
+                $('#alerta_fds').remove()
+
+                $('.opcoes_horarios').remove()            
+
+                $('#horario_consulta').append('<option class="opcoes_horarios" value="" selected disabled>Selecione...</option>')
+
+                $('.opcoes_veterinarios').remove()            
+
+                $('#veterinarios_d').append('<option class="opcoes_veterinarios" value="" selected disabled>Selecione...</option>')
+
+                let data = $(e.target).val()
+
+                $.ajax({
+
+                    type: 'GET',
+                    url:"/verifica_data_horario",
+                    data: `data=${data}`,
+                    dataType: 'json',
+                    success: (horarios_disponiveis) =>{                  
+
+                        horarios_disponiveis.forEach(function(horario){
+
+                            $('#horario_consulta').append('<option class="opcoes_horarios" value="' + horario + '">' + horario + '</option>')
+
+                        })                    
+                    }, 
+                    error: (erro) =>{
+
+                        $('#conteudo').removeClass('d-flex').html('<div class="alert alert-danger text-center" role="alert">' +
+                                        'Problemas de conexão com o banco de dados! Por favor tente novamente mais tarde.' +
+                                    '</div>')
+                    }
+                });
+            }           
+
+        });
+
+        $('#horario_consulta').on('change', e => {
+
+            $('.opcoes_veterinarios').remove()            
+
+            $('#veterinarios_d').append('<option class="opcoes_veterinarios" value="" selected disabled>Selecione...</option>')
+
+            let horario = $(e.target).val()
+            let data = $('#data_consulta').val()
+
+            $.ajax({
+
+                type: 'GET',
+                url:"/verifica_veterinarios",
+                data: `horario=${horario}&data=${data}`,
+                dataType: 'json',
+                success: (veterinarios_disponiveis) =>{                  
+
+                    veterinarios_disponiveis.forEach(function(veterinario){
+
+                        $('#veterinarios_d').append('<option class="opcoes_veterinarios" value="' + veterinario.crmv + '">Dr(a) ' + veterinario.nome + '</option>')
+
+                    })                    
+                }, 
+                error: (erro) =>{
+
+                    $('#conteudo').removeClass('d-flex').html('<div class="alert alert-danger text-center" role="alert">' +
+                                        'Problemas de conexão com o banco de dados! Por favor tente novamente mais tarde.' +
+                                    '</div>')
+                }
+            });
+
+        });
+    });    
+
+</script>
+
+<section id="conteudo" class="d-flex">
+    <div class="container align-self-center">
+        <div class="row">
+            
+            <div class="col-md-4 mx-auto bg-white rounded">
+
+                <div class="text-primary text-center mb-5 mt-4">
+                    <h3 class="font-weight-bold">Agendamento | Consulta</h3>
+                </div>        
+                
+                <form action="/agendar_consulta2" method="post">
+
+                    <div class="form-group">
+                        <label class="text-dark mr-2 pt-2" for="nome_pet">Nome do Pet</label>
+                        <select class="form-control" name="pet" id="nome_pet" required>
+
+                            <option value="" selected disabled>Selecione...</option>
+                            
+                            <?php foreach($this->view->pets as $id => $pet){ ?>
+
+                                <option value="<?= $pet['id_pet'] ?>"><?= $pet['nome'] ?></option>  
+
+                            <? } ?>                    
+                        
+                        </select>
+                    </div>
+                    
+                    <div id="data" class="form-group">
+                        <label class="text-dark mr-2 pt-2" for="data_consulta">Data</label>
+                        <input id="data_consulta" type="date" name="data_consulta" max="<?= $this->view->data_maxima ?>" min="<?= $this->view->data_atual ?>" class="form-control" required="required">
+                        <small class="form-text text-dark mb-3">*Exceto fins de semana e feriados</small>
+                    </div>                 
+                    
+                    <div id="horarios" class="form-group">
+                        <label class="text-dark mr-2 pt-2" for="horario_consulta">Horários disponíveis</label>
+                        <select class="form-control" name="horario_consulta" id="horario_consulta" required>
+
+                            <option class="opcoes_horarios" value="" selected disabled>Selecione...</option>         
+
+                        </select>
+                        <small class="form-text text-dark mb-3">*Selecione a data antes</small>
+                    </div>                     
+                    
+                    <div id="veterinarios" class="form-group">
+                        <label class="text-dark mr-2 pt-2" for="veterinarios_d">Veterinários disponíveis</label>
+                        <select class="form-control" name="veterinarios_d" id="veterinarios_d" required>
+
+                            <option class="opcoes_veterinarios" value="" selected disabled>Selecione...</option>         
+
+                        </select>
+                        <small class="form-text text-dark mb-3">*Selecione o horário antes</small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block mb-4 mt-5">Agendar</button>  
+                    
+                    <?php if($this->view->erro){ ?>
+
+                        <small class="form-text text-danger mb-3">
+                            *Erro ao agendar a consulta, verifique se o pet selecionado já possui uma consulta marcada 
+                            no dia em questão e por favor tente outra vez.
+                        </small>  
+
+                    <? } ?>
+
+                </form>
+                
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,45 @@
+<section id="conteudo" class="d-flex">
+
+	<div class="container align-self-center">
+
+		<div class="row">
+
+			<div class="col-md-4 mx-auto bg-white rounded">
+
+				<div class="text-primary text-center mb-4 mt-4">
+					<h2 class="font-weight-bold"><?= $this->view->titulo ?></h2>
+				</div>
+
+				<form method="post" action="<?= $this->view->rota ?>">
+					
+					<div class="form-group">
+						<input name="email" type="text" value="<?= $this->view->usuario['email']; ?>" class="form-control" placeholder="E-mail" required>
+					</div>
+					<div class="form-group">
+						<input name="senha" type="password" value="<?= $this->view->usuario['senha']; ?>" class="form-control" placeholder="Senha" required>
+					</div>
+					<div class="form-group">
+						<button type="submit" class="btn btn-primary mb-4 btn-block">Entrar</button>
+					</div>						
+
+					<?if($this->view->erro){ ?>
+						
+						<span class="form-text text-danger mb-3">*E-mail e ou senha inválido(s)</span>						
+
+					<? } ?>
+
+				</form>
+
+			</div>			
+
+		</div>
+
+		<?if($this->view->login_cliente){ ?>
+						
+			<div class="text-center mt-3">Não possui cadastro? <a class="text-info" href="/cadastrar_cli">Cadastre-se</a></div>						
+	
+		<? } ?>
+
+	</div>
+
+</section>

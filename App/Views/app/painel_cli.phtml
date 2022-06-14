@@ -1,0 +1,134 @@
+<script>
+
+    function aviso_visualizado(){
+
+        var lista_id_avisos = [];
+
+        var avisos = document.getElementsByClassName('avisos');            
+
+        for (var i=0;i<avisos.length;i++){                          
+                
+            lista_id_avisos.push(avisos[i].id)       
+        }         
+
+        $.ajax({
+
+            type: 'POST',
+            url:"/avisos_visualizados",
+            data:'avisos_visualizados=' + lista_id_avisos,
+            dataType: 'json',
+            success: (resposta) =>{                                     
+                
+                console.log(resposta)
+                                        
+            }, 
+            error: (erro) =>{
+
+                $('#conteudo').removeClass('d-flex').removeClass('align-items-center').html('<div class="alert alert-danger text-center" role="alert">' +
+                                        'Problemas de conexão com o banco de dados! Por favor tente novamente mais tarde.' +
+                                    '</div>')
+            }
+        });
+    }
+
+    $(document).ready(function(){       
+
+        $.ajax({
+
+            type: 'GET',
+            url:"/verifica_avisos",
+            dataType: 'json',
+            success: (avisos) =>{     
+                
+                if(avisos.length != 0){
+
+                    avisos.forEach(function(aviso){
+
+                        $('#corpo_modal').append('<p id="' + aviso.id_aviso + '" class="text-dark avisos">' + aviso.descricao + '</p>')                       
+                    }) 
+
+                    $('#rodape_modal').append('<button onclick="aviso_visualizado()" type="button" class="btn btn-secondary" data-dismiss="modal">Estou ciente</button>') 
+                    $('#aviso_cancelamento').modal('show'); 
+                }                               
+            }, 
+            error: (erro) =>{
+
+                $('#conteudo').removeClass('d-flex').removeClass('align-items-center').html('<div class="alert alert-danger text-center" role="alert">' +
+                                        'Problemas de conexão com o banco de dados! Por favor tente novamente mais tarde.' +
+                                    '</div>')
+            }
+        });     
+
+    });
+
+</script>
+
+<div class="modal fade" id="aviso_cancelamento" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-dark" id="staticBackdropLabel">Aviso importante!</h5>
+      </div>
+      <div id="corpo_modal" class="modal-body"></div>
+      <div id="rodape_modal" class="modal-footer"></div>
+    </div>
+  </div>
+</div>
+
+<section id="conteudo" class="d-flex align-items-center">
+    <div class="container">
+        <div class="row">
+            
+            <div class="col-md-6 p-0 mx-auto bg-white rounded">
+
+                <div class="text-secondary text-center mt-4">
+                    <h3 class="font-weight-bold">MENU</h3>
+                </div>                
+                    
+                <div class="menu_painel">
+
+                    <?php if($this->view->pet_cadastrado){ ?>
+
+                        <a href="/agendar_consulta">
+                            <div class="caixa_menu rounded text-white">
+                                <h4>Agendar consulta</h4>
+                            </div>
+                        </a>
+
+                    <? } ?>                     
+
+                    <a href="/cadastrar_pet">
+                        <div class="caixa_menu rounded text-white">
+                            <h4>Cadastrar pet</h4>
+                        </div>
+                    </a>
+                    
+                </div>  
+                
+                <?php if(!$this->view->pet_cadastrado){ ?>
+
+                    <p class="form-text text-danger mb-3 text-center">*Cadastre seu pet antes de agendar uma consulta.</p>
+
+                <? } ?>
+
+                <?php if($this->view->consultas_marcadas != ''){
+
+                    foreach($this->view->consultas_marcadas as $consulta_marcada){ 
+
+                        $data = explode('-', $consulta_marcada['data']);
+
+                        $data = $data[2] . '/' . $data[1] . '/' . $data[0]; ?>
+
+                        <div class="alert alert-success mb-0 mt-3" role="alert">
+                            Lembramos que seu(sua) amigo(a) <?= $consulta_marcada['nome_pet'] ?> tem uma consulta
+                            marcada no dia <?= $data ?> às <?= $consulta_marcada['horario'] ?> horas. Fique atento!
+                        </div>
+
+                    <? } ?>                    
+
+                <? } ?>
+                
+            </div>
+        </div>
+    </div>
+</section>

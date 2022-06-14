@@ -1,0 +1,63 @@
+<script src="js/mascaras.js"></script>
+
+<section id="conteudo" class="d-flex">
+  <div class="container align-self-center">
+    <div class="row">
+      <div class="col-md-5 ml-auto mr-auto bg-white rounded">
+
+        <div class="text-primary text-center mb-4 mt-4">
+          <h2 class="font-weight-bold">Cadastro | Veterinário(a)</h2>
+        </div>        
+          
+        <form action="/cadastrar_vet2" method="post">
+          <div class="form-group">
+            <label class="text-dark mr-2 pt-2" for="nome">Nome</label>
+            <input id="nome" required value="<?= $this->view->veterinario['nome']; ?>" name="nome" type="text" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label class="text-dark mr-2 pt-2" for="cpf">Cpf</label>
+            <input id="cpf" required value="<?= $this->view->veterinario['cpf']; ?>" name="cpf" type="text" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label class="text-dark mr-2 pt-2" for="telefone">Telefone</label>
+            <input id="telefone" required value="<?= $this->view->veterinario['telefone']; ?>" name="telefone" type="text" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label class="text-dark mr-2 pt-2" for="endereco">Endereço</label>
+            <input id="endereco" required value="<?= $this->view->veterinario['endereco']; ?>" name="endereco" type="text" class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label class="text-dark mr-2 pt-2" for="email">Email</label>
+            <input id="email" required value="<?= $this->view->veterinario['email']; ?>" name="email" type="text" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label class="text-dark mr-2 pt-2" for="crmv">CRMV</label>
+            <input id="crmv" required value="<?= $this->view->veterinario['crmv']; ?>" name="crmv" type="text" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label class="text-dark mr-2 pt-2" for="senha">Senha</label>
+            <input id="senha" required value="<?= $this->view->veterinario['senha']; ?>" name="senha" type="password" class="form-control">
+            <small class="form-text text-dark mb-3">*A senha deve ter no mínimo 4 e no máximo 8 caracteres.</small>
+          </div>                
+          
+          <button type="submit" class="btn btn-primary mt-5 btn-block mb-4">Cadastrar</button>
+
+          <?php if($this->view->erroCadastro){ ?>
+
+            <small class="form-text text-danger mb-3">*Erro ao tentar realizar o cadastro, verifique se os campos foram preenchidos corretamente ou se o(a) veterinário(a) em questão já possui cadastro.</small>  
+
+          <? } ?>
+
+        </form>
+            
+      </div>
+    </div>
+  </div>
+
+</section>

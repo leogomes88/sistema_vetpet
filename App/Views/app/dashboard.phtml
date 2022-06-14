@@ -1,0 +1,424 @@
+<script>  
+
+    function set_container($liga, $desliga1, $desliga2){
+
+        $('#div_' + $liga).removeClass('d-none')
+        $('#' + $liga).addClass('item_menu_dashboard_ativo')
+
+        $('#div_' + $desliga1).addClass('d-none')              
+        $('#' + $desliga1).removeClass('item_menu_dashboard_ativo')    
+
+        $('#div_' + $desliga2).addClass('d-none')              
+        $('#' + $desliga2).removeClass('item_menu_dashboard_ativo') 
+    }   
+
+    function carrega_dados_clientes(filtro = ''){    
+        
+        $('.linhas').remove()        
+
+        $.ajax({
+
+            type: 'GET',
+            url:"/recuperar_clientes",            
+            data: `filtro=${filtro}`,
+            dataType: 'json',
+            beforeSend: function(){
+
+                $('#tabela_vazia').addClass('d-none')
+                $('#area_tabela_clientes').addClass('d-none')
+                $('#area_dados_clientes').append('<img class="rounded mx-auto d-block" id="load" src="imagens/loading.gif" alt="gif_loading">');
+            },
+            complete: function(){
+
+                $('#load').remove();
+            },
+            success: (clientes) =>{               
+
+                if(clientes.length != 0){     
+                    
+                    $('#area_tabela_clientes').removeClass('d-none')
+
+                    clientes.forEach(function(cliente){   
+                        
+                        if(cliente.nome_pet == null){
+
+                            cliente.nome_pet = 'sem pets cadastrados'
+                        }
+
+                        $('#linha_tabela_clientes').append('<tr class="linhas">'+
+                                                                '<td>' + cliente.nome_cliente + '</td>'+
+                                                                '<td>' + cliente.telefone + '</td>'+
+                                                                '<td>' + cliente.email + '</td>'+
+                                                                '<td>' + cliente.nome_pet + '</td>'+               
+                                                        '</tr>')
+                    })           
+
+                }else{
+
+                    $('#tabela_vazia').removeClass('d-none')
+                }
+            }, 
+            error: (erro) =>{
+
+                $('#conteudo_dashboard').addClass('d-block mt-2').html('<div class="alert alert-danger text-center" role="alert">' +
+                                        'Problemas de conexão com o banco de dados! Por favor tente novamente mais tarde.' +
+                                    '</div>')
+            }
+        });
+    }    
+
+    $(document).ready(() => {   
+        
+        $('#dados_gerais').addClass('item_menu_dashboard_ativo')
+
+        carrega_dados_clientes()
+
+        $('#dados_gerais').click(() => {  
+            
+            set_container('dados_gerais', 'clientes', 'veterinarios')
+        });
+
+        $('#clientes').click(() => {   
+            
+            set_container('clientes', 'dados_gerais', 'veterinarios')
+        });
+
+        $('#veterinarios').click(() => { 
+
+            set_container('veterinarios', 'dados_gerais', 'clientes') 
+        });
+        
+        $('#mes_competencia').on('change', e => {
+            
+            let mes_referencia = $(e.target).val()
+            
+            $.ajax({
+
+                type: 'GET',
+                url:"/dados_mes",
+                data: `mes_referencia=${mes_referencia}`,
+                dataType: 'json',
+                beforeSend: function(){
+
+                    $('#total_consultas_mes').html('<img class="rounded mx-auto d-block load_pequeno" src="imagens/loading_pequeno.gif" alt="gif_loading">');
+                    $('#total_consultas_mes_anterior').html('<img class="rounded mx-auto d-block load_pequeno" src="imagens/loading_pequeno.gif" alt="gif_loading">')   
+                    $('#total_agendadas').html('<img class="rounded mx-auto d-block load_pequeno" src="imagens/loading_pequeno.gif" alt="gif_loading">')   
+                    $('#realizadas_com_agendamento').html('<img class="rounded mx-auto d-block load_pequeno" src="imagens/loading_pequeno.gif" alt="gif_loading">')      
+                    $('#realizadas_sem_agendamento').html('<img class="rounded mx-auto d-block load_pequeno" src="imagens/loading_pequeno.gif" alt="gif_loading">')      
+                    $('#vet_mais_consultas').html('<img class="rounded mx-auto d-block load_pequeno" src="imagens/loading_pequeno.gif" alt="gif_loading">')      
+                    $('#vet_menos_consultas').html('<img class="rounded mx-auto d-block load_pequeno" src="imagens/loading_pequeno.gif" alt="gif_loading">')
+                    $('#porcentagem_crescimento').html('<img class="rounded mx-auto d-block load_pequeno" src="imagens/loading_pequeno.gif" alt="gif_loading">')
+                },
+                success: (dados) =>{   
+
+                    const data_atual = new Date()
+
+                    const data_mes_referencia = new Date(mes_referencia + '-01 12:00') 
+
+                    let porcentagem_crescimento = dados.total_consultas_realizadas - dados.total_consultas_realizadas_mes_anterior
+                    porcentagem_crescimento = porcentagem_crescimento * 100 / dados.total_consultas_realizadas_mes_anterior 
+
+                    porcentagem_crescimento = parseFloat(porcentagem_crescimento.toFixed(2));       
+                    
+                    $('#total_consultas_mes').html(dados.total_consultas_realizadas)      
+                    $('#total_consultas_mes_anterior').html(dados.total_consultas_realizadas_mes_anterior)   
+                    $('#total_agendadas').html(dados.total_consultas_agendadas)   
+                    $('#realizadas_com_agendamento').html(dados.realizadas_com_agendamento)      
+                    $('#realizadas_sem_agendamento').html(dados.realizadas_sem_agendamento)      
+                    $('#vet_mais_consultas').html(dados.vet_mais_consultas)      
+                    $('#vet_menos_consultas').html(dados.vet_menos_consultas) 
+
+                    let meses = document.getElementsByClassName('meses');
+
+                    //controla possíveis erros de exibição
+                    if(mes_referencia == meses[0].value){
+
+                        $('#porcentagem_crescimento').html('n/a')
+                        $('#total_consultas_mes_anterior').html('n/a')
+                        
+                    }else if(data_mes_referencia > data_atual){
+                        
+                        $('#porcentagem_crescimento').html('n/a')
+                        $('#vet_mais_consultas').html('n/a')      
+                        $('#vet_menos_consultas').html('n/a') 
+                        $('#realizadas_com_agendamento').html('n/a')      
+                        $('#realizadas_sem_agendamento').html('n/a')  
+                        $('#total_consultas_mes').html('n/a')  
+                        
+                    }else{
+                        
+                        $('#porcentagem_crescimento').html(porcentagem_crescimento + '%')
+                    }      
+                    
+                    if(dados.vet_mais_consultas == null && dados.vet_menos_consultas == null){
+
+                        $('#vet_menos_consultas').html('n/a')
+                        $('#vet_mais_consultas').html('n/a')
+                    }  
+
+                    if(dados.vet_mais_consultas == dados.vet_menos_consultas){
+
+                        $('#vet_menos_consultas').html('n/a')
+                    }                     
+                }, 
+                error: (erro) =>{
+
+                    $('#conteudo_dashboard').addClass('d-block mt-2').html('<div class="alert alert-danger text-center" role="alert">' +
+                                        'Problemas de conexão com o banco de dados! Por favor tente novamente mais tarde.' +
+                                    '</div>')
+                }
+            });
+
+        });
+
+        $("#filtro").on("input", function(){
+
+            carrega_dados_clientes($('#filtro').val())
+        })
+
+        $('#botao_limpar').click(() => { 
+        
+            $('#filtro').val('')
+
+            carrega_dados_clientes()
+        });
+
+    });      
+
+</script>
+
+<section id="conteudo_dashboard" class="row">  
+
+    <div class="bg-dark col-xl-2 p-0">
+        <ul>
+            <li class="m-0">
+                <div class="d-flex pt-5 pb-5 justify-content-center">
+                    <i id="icone_dashboard" class="fa fa-tachometer-alt sidebar-icon mr-3 ml-2 text-white"></i>
+                    <h4 class="text-white">Dashboard</h4>
+                </div>
+            </li>
+            <li class="m-0"><a id="dados_gerais" class="itens_menu_dashboard border-top border-secondary" href="#">Dados gerais</a></li>
+            <li class="m-0"><a id="clientes" class="itens_menu_dashboard" href="#">Clientes</a></li>
+            <li class="m-0"><a id="veterinarios" class="itens_menu_dashboard" href="#">Veterinários</a></li>                                                        
+        </ul>
+    </div>      
+
+    <div id="div_dados_gerais" class="bg-white col-xl-10">
+        <div class="container mt-4">
+
+            <div class="row">
+                <div class="col">
+                    
+                    <form>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label text-dark">Mês de competência:</label>
+                            <div class="col-sm-3 mr-auto">
+                                <select id="mes_competencia" class="form-control">
+
+                                    <option value="" disabled selected>-- Selecione --</option>
+
+                                    <?php foreach($this->view->meses_referencia as $mes_referencia){ 
+
+                                        $ano_mes = explode('-', $mes_referencia);
+
+                                        $mes_ano = $ano_mes[1] . '/' . $ano_mes[0]; ?>
+
+                                        <option class="meses" value="<?= $mes_referencia ?>"><?= $mes_ano ?></option>
+
+                                    <? } ?> 
+
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+
+                    <hr />
+
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card mb-3">
+                        <div class="card-header text-dark">
+                            Nº de consultas realizadas no mês
+                        </div>
+                        <div class="card-body">
+                            <h5 id="total_consultas_mes" class="card-title text-dark text-center">?</h5>
+                        </div>
+                    </div>
+                </div>                
+                <div class="col-md-4">
+                    <div class="card mb-3">
+                        <div class="card-header text-dark">
+                            Nº de consultas realizadas no mês anterior
+                        </div>
+                        <div class="card-body">
+                            <h5 id="total_consultas_mes_anterior" class="card-title text-dark text-center">?</h5>
+                        </div>
+                    </div>
+                </div>      
+                <div class="col-md-4">
+                    <div class="card mb-3">
+                        <div class="card-header text-dark">
+                            Crescimento com relação ao mês anterior
+                        </div>
+                        <div class="card-body">
+                            <h5 id="porcentagem_crescimento" class="card-title text-dark text-center">?</h5>
+                        </div>
+                    </div>
+                </div>            
+
+            </div>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card mb-3">
+                        <div class="card-header text-dark">                            
+                            Consultas agendadas no mês
+                        </div>
+                        <div class="card-body">
+                            <h5 id="total_agendadas" class="card-title text-dark text-center">?</h5>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card mb-3">
+                        <div class="card-header text-dark">                            
+                            Realizadas com agendamento no mês
+                        </div>
+                        <div class="card-body">
+                            <h5 id="realizadas_com_agendamento" class="card-title text-dark text-center">?</h5>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card mb-3">
+                        <div class="card-header text-dark">
+                            Realizadas sem agendamento no mês
+                        </div>
+                        <div class="card-body">
+                            <h5 id="realizadas_sem_agendamento" class="card-title text-dark text-center">?</h5>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card mb-3">
+                        <div class="card-header text-dark">
+                            Veterinário(a) com mais consultas realizadas no mês
+                        </div>
+                        <div class="card-body">
+                            <h5 id="vet_mais_consultas" class="card-title text-dark text-center">?</h5>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card mb-3">
+                        <div class="card-header text-dark">
+                            Veterinário(a) com menos consultas realizadas no mês
+                        </div>
+                        <div class="card-body">
+                            <h5 id="vet_menos_consultas" class="card-title text-dark text-center">?</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>            
+        </div>
+    </div> 
+
+    <div id="div_clientes" class="bg-white col-xl-10 d-none">
+        <div class="container mt-4"> 
+            <div class="mb-4 mt-3 text-center">
+                <h3 class="text-secondary font-weight-bold">Clientes</h3>
+            </div>  
+
+            <div id="area_dados_clientes" class="border border-dark p-3 mb-4">
+                <div class="row">
+                    
+                    <div class="col-md-7">
+                        <div class="form-group row">                                    
+                            <div id="input_filtro" class="col-sm-7">
+                                <input id="filtro" name="filtro" type="text" class="form-control">
+                                <small class="form-text text-dark mt-2 mb-3">*Filtro de nome de clientes</small>
+                            </div>
+                            <div class="col-sm-5">
+                                <button id="botao_limpar" type="button" class="btn btn-secondary mb-3">Limpar</button>
+                            </div>                                    
+                        </div>                                                      
+                    </div>                                           
+                </div>
+
+                <div id="tabela_vazia" class="alert alert-info d-none" role="alert">
+                    Nenhum resultado encontrado.
+                </div>
+
+                <div id="area_tabela_clientes" class="row d-none p-3">
+
+                    <div class="table-responsive mt-1">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Telefone</th>
+                                    <th>Email</th>
+                                    <th>Pets</th>
+                                </tr>                                                                                                        
+                            </thead>
+                            <tbody id="linha_tabela_clientes"></tbody>
+                        </table>
+                    </div>
+                    
+                </div>                       
+            </div>            
+        </div>
+    </div>
+
+    <div id="div_veterinarios" class="bg-white col-xl-10 d-none">        
+        <div class="container mt-4"> 
+
+            <div class="mb-4 mt-3 text-center">
+                <h3 class="text-secondary font-weight-bold">Veterinários</h3>
+            </div>  
+            
+            <div id="dados_vets" class="row d-flex justify-content-around">
+
+                <?php foreach($this->view->vets as $vet){ ?>
+
+                    <div class="col-md-5 border border-dark m-3 p-3">                                            
+                        <div class="d-flex flex-wrap">
+                            <label class="text-dark mr-2 font-weight-bold">Nome:</label>
+                            <h6 class="text-dark alinhar_texto"><?= $vet['nome'] ?></h6>
+                        </div>
+                        <div class="d-flex flex-wrap">
+                            <label class="text-dark mr-2 font-weight-bold" for="telefone_vet">Telefone:</label>
+                            <h6 class="text-dark alinhar_texto"><?= $vet['telefone'] ?></h6>
+                        </div>
+                        <div class="d-flex flex-wrap">
+                            <label class="text-dark mr-2 font-weight-bold">Email:</label>
+                            <h6 class="text-dark alinhar_texto"><?= $vet['email'] ?></h6>
+                        </div>         
+                        <div class="d-flex flex-wrap">
+                            <label class="text-dark mr-2 font-weight-bold">Endereço:</label>
+                            <h6 class="text-dark alinhar_texto"><?= $vet['endereco'] ?></h6>
+                        </div>                     
+                        <div class="d-flex flex-wrap">
+                            <label class="text-dark mr-2 font-weight-bold">Crmv:</label>
+                            <h6 class="text-dark alinhar_texto"><?= $vet['crmv'] ?></h6>
+                        </div>  
+                    </div>
+
+                <? } ?>
+                
+            </div>                                      
+                       
+        </div>
+    </div> 
+
+</section>

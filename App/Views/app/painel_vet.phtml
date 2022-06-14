@@ -1,0 +1,46 @@
+<section id="conteudo" class="d-flex align-items-center">
+    <div class="container">
+        <div class="row">
+            
+            <div class="col-md-6 p-0 mx-auto bg-white rounded">
+
+                <div class="text-secondary text-center mt-4">
+                    <h3 class="font-weight-bold">MENU</h3>
+                </div>
+
+                <div class="menu_painel">
+                    
+                    <a href="/controlar_agenda">
+                        <div class="caixa_menu rounded text-white">
+                            <h4>Controle de agenda</h4>
+                        </div>
+                    </a>                        
+
+                    <a href="/controlar_consultas">
+                        <div class="caixa_menu rounded text-white">
+                            <h4>Controle de consultas</h4>
+                        </div>
+                    </a>                    
+                    
+                    <?php if($this->view->usuario_especial){ ?>
+                        
+                        <a href="/cadastrar_vet">
+                            <div class="caixa_menu rounded text-white">
+                                <h4>Cadastrar veterinários</h4>
+                            </div>
+                        </a>
+
+                        <a href="/dashboard">
+                            <div class="caixa_menu rounded text-white">
+                                <h4>Dashboard</h4>
+                            </div>
+                        </a>                                              
+                    
+                    <?php } ?>
+
+                </div>                
+                
+            </div>
+        </div>
+    </div>
+</section>

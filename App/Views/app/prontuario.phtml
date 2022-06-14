@@ -1,0 +1,142 @@
+<script>
+
+    function realizar_consulta(id_pet){
+
+        if ($('#descricao').val() == '') {
+                
+            $('#alerta_vazio').removeClass('d-none')
+            $('#alerta_sucesso').addClass('d-none')
+
+        }else{
+                            
+            let descricao = $('#descricao').val()
+
+            $.ajax({
+
+                type: 'POST',
+                url:"/realizar_consulta",
+                data: `id_pet=${id_pet}&descricao=${descricao}`,
+                dataType: 'json',
+                success: (historico) =>{      
+                    
+                    $('.descricoes_consultas').remove()
+
+                    historico.forEach(function(consulta){
+                        
+                        let data_consulta = consulta.data.split("-");
+
+                        data_consulta = data_consulta[2] + '/' + data_consulta[1] + '/' + data_consulta[0] 
+
+                        $('#prontuario').append(`<p class="text-dark descricoes_consultas">${data_consulta} ${consulta.horario}  ${consulta.nome_vet}<br>${consulta.descricao}</p>`)                                 
+
+                    })   
+                    
+                    $('#alerta_sucesso').removeClass('d-none')
+                    $('#alerta_vazio').addClass('d-none')
+                    $('#descricao').val('')
+
+                }, 
+                error: (erro) =>{
+
+                    $('#conteudo').removeClass('d-flex').html('<div class="alert alert-danger text-center" role="alert">' +
+                                        'Problemas de conexão com o banco de dados! Por favor tente novamente mais tarde.' +
+                                    '</div>')
+                }
+                
+            });          
+        }
+    }    
+
+</script>
+
+<section id="conteudo" class="d-flex">
+    <div class="container">                   
+
+        <div class="row">    
+            
+            <div class="col-md-2">
+                <a href="/controlar_consultas" class="btn btn-info">Voltar à página de busca</a>
+            </div>
+            
+            <div class="col-md-7 ml-md-5 p-3">
+
+                <div class="mb-4 mt-2 text-center">
+                    <h3 class="text-secondary font-weight-bold">Dados do pet</h3>
+                </div> 
+                
+                <div class="row m-0 border border-dark p-3">  
+
+                    <div class="col-sm-8 p-0">                          
+                        <div class="d-flex">
+                            <label class="text-dark mr-2 font-weight-bold" for="nome">Pet:</label>
+                            <h6 id="nome_pet" class="text-dark alinhar_texto"><?=$this->view->pet['nome_pet']?></h6>
+                        </div> 
+                        <div class="d-flex">
+                            <label class="text-dark mr-2 font-weight-bold" for="nome">Tutor:</label>
+                            <h6 id="nome_tutor" class="text-dark alinhar_texto"><?=$this->view->pet['nome_tutor']?></h6>
+                        </div> 
+                        <div class="d-flex">
+                            <label class="text-dark mr-2 font-weight-bold" for="nome">Data/nasc:</label>
+                            <h6 id="data_nasc" class="text-dark alinhar_texto"><?=$this->view->pet['data_nasc']?></h6>
+                        </div>                                             
+                    </div>
+                    
+                    <div class="col-sm-4 p-0">
+                        <div class="d-flex">
+                            <label class="text-dark mr-2 font-weight-bold" for="nome">Espécie:</label>
+                            <h6 id="especie" class="text-dark alinhar_texto"><?=$this->view->pet['especie']?></h6>
+                            
+                        </div> 
+                        <div class="d-flex">
+                            <label class="text-dark mr-2 font-weight-bold" for="nome">Raça:</label>
+                            <h6 id="raca" class="text-dark alinhar_texto"><?=$this->view->pet['raca']?></h6>
+                        </div> 
+                        <div class="d-flex">
+                            <label class="text-dark mr-2 font-weight-bold" for="nome">Porte:</label>
+                            <h6 id="porte" class="text-dark alinhar_texto"><?=$this->view->pet['porte']?></h6>
+                        </div>               
+                    </div>  
+
+                </div>   
+                
+                <div class="mt-4 border border-dark p-3">
+
+                    <h5 class="text-dark font-weight-bold mb-4 text-center" for="resultado">Histórico clínico</h5>                                              
+
+                    <div id="prontuario" class="text-left bg-white p-3">
+
+                        <?php foreach ($this->view->historico as $consulta) { ?>
+
+                            <?php
+                                $consulta['data'] = explode('-', $consulta['data']);
+                                $consulta['data'] = $consulta['data'][2] . '/' . $consulta['data'][1] . '/' . $consulta['data'][0];
+                            ?>
+
+                            <p class="text-dark descricoes_consultas"><?=$consulta['data'] . ' ' . $consulta['horario'] . '  ' . $consulta['nome_vet']?><br><?=$consulta['descricao']?></p>                                
+
+                        <? } ?>
+
+                    </div>    
+
+                    <div  class="form-group">
+                        <label class="text-dark mt-4 mb-2 font-weight-bold" for="descricao">Novo:</label>
+                        <textarea id="descricao" class="form-control" name="descricao" rows="4"></textarea>
+
+                        <div id="alerta_vazio" class="alert alert-danger mt-2 d-none" role="alert">
+                            O campo de descrição da consulta está vazio!
+                        </div>
+                    </div>                        
+
+                    <button onclick="realizar_consulta(<?=$this->view->pet['id_pet']?>)" type="button" class="btn btn-info mt-4 btn-block">Inserir no histórico</button> 
+                    
+                    <div id="alerta_sucesso" class="alert alert-success mt-3 d-none" role="alert">
+                        Descrição da consulta incluida com sucesso!
+                    </div>
+
+                </div>                                
+                
+            </div>
+        </div>   
+       
+    </div>
+</section>
