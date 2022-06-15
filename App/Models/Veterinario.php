@@ -3,6 +3,7 @@
 	namespace App\Models;
 
 	use MF\Model\Model;
+	use App\Connection;	
 
 	class veterinario extends Model{
 
@@ -176,6 +177,34 @@
 			$stmt->execute();
 			
 			return $stmt->fetchAll(\PDO::FETCH_ASSOC);	
+		}
+
+		public static function getCrmvVet(){
+
+			$conn = Connection::getDb();
+
+			$query = "SELECT nome, crmv FROM veterinarios";
+
+			$stmt = $conn->prepare($query);					
+
+			$stmt->execute();
+
+			return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+		}
+
+		public static function getCrmvPorCpf($cpf_vet){
+
+			$conn = Connection::getDb();
+
+			$query = "SELECT crmv FROM veterinarios WHERE cpf = :cpf";
+
+			$stmt = $conn->prepare($query);		
+			
+			$stmt->bindValue(':cpf', $cpf_vet);
+
+			$stmt->execute();
+
+			return $stmt->fetch(\PDO::FETCH_OBJ);
 		}
 	}
 

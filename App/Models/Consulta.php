@@ -30,7 +30,7 @@
 
 		public function verificar_datas_horarios_disponiveis(){
 
-			$num_vets = count($this->getCrmvVet());
+			$num_vets = count(Veterinario::getCrmvVet());			
 
 			$horarios_disponiveis = $this->horarios_disponiveis;			
 
@@ -83,8 +83,8 @@
 		}
 
 		public function verificar_veterinarios_disponiveis(){
-							
-			$lista_vets = $this->getCrmvVet();						
+
+			$lista_vets = Veterinario::getCrmvVet();								
 
 			$query = "SELECT crmv_vet FROM consultas WHERE data = :data AND horario = :horario;";
 
@@ -212,7 +212,7 @@
 
 				$id_consulta = (array) $this->verifica_consulta_mesmo_dia();
 
-				$crmv_vet = (array) $this->getCrmvPorCpf($cpf_vet);
+				$crmv_vet = (array) Veterinario::getCrmvPorCpf($cpf_vet);				
 				
 				$query = "UPDATE consultas SET crmv_vet = :crmv_vet, descricao = :descricao, status = 'realizada' WHERE id_consulta = :id_consulta;";
 
@@ -234,7 +234,7 @@
 
 		public function realizar_consulta_nao_agendada($cpf_vet){
 
-			$crmv_vet = (array) $this->getCrmvPorCpf($cpf_vet);
+			$crmv_vet = (array) Veterinario::getCrmvPorCpf($cpf_vet);			
 
 			$query = "INSERT INTO consultas(data, horario, crmv_vet, id_pet, descricao, status)VALUES(:data, :horario, :crmv_vet, :id_pet, :descricao, 'realizada sem marcar')";
 
@@ -500,7 +500,7 @@
 
 		public function bloquear_horarios($datas_horarios, $cpf_vet){
 
-			$crmv = (array) $this->getCrmvPorCpf($cpf_vet);			
+			$crmv = (array) Veterinario::getCrmvPorCpf($cpf_vet);						
 							
 			foreach($datas_horarios as $data_horario){				
 					
@@ -636,32 +636,6 @@
 			$stmt->execute();
 
 			return $stmt->fetch(\PDO::FETCH_ASSOC);
-		}
-		
-		//FUNÇÕES AUXILIARES
-
-		public function getCrmvVet(){
-
-			$query = "SELECT nome, crmv FROM veterinarios";
-
-			$stmt = $this->db->prepare($query);					
-
-			$stmt->execute();
-
-			return $stmt->fetchAll(\PDO::FETCH_ASSOC);
-		}
-
-		private function getCrmvPorCpf($cpf_vet){
-
-			$query = "SELECT crmv FROM veterinarios WHERE cpf = :cpf";
-
-			$stmt = $this->db->prepare($query);		
-			
-			$stmt->bindValue(':cpf', $cpf_vet);
-
-			$stmt->execute();
-
-			return $stmt->fetch(\PDO::FETCH_OBJ);
-		}
+		}		
 	}
 ?>
