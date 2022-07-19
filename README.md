@@ -11,7 +11,7 @@ Entrada de veterinários: http://leodeswebvet.epizy.com/login_vet
   
 A aplicação engloba o site de divulgação da clínica, cadastro e agendamento de consultas para os clientes, controle de agenda e controle de consultas para os veterinários, além de um dashboard do sistema para um veterinário usuário especial.
 
-O software conta com inteligência de negócio, páginas dinámicas, boa resposta aos usuários, filtro nos dados, tratamento de erros, entre outros requisitos necessários para as aplicações modernas. 
+O software conta com páginas dinâmicas, boa resposta aos usuários, filtro nos dados, tratamento de erros, entre outros requisitos necessários para as aplicações modernas. 
 
 ## Alguns requisitos funcionais empregados
 
