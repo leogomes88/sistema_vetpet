@@ -1,27 +1,13 @@
 <?php 
 
-	namespace App\Models;
+	namespace App\Models\DaoImpl;	
 
-	use MF\Model\Model;
+	use MF\Model\ModelDao;
+	use App\Models\Dao\InterfaceAvisoDao;
 
-	class Aviso extends Model{
+	class AvisoDao extends ModelDao implements InterfaceAvisoDao{			
 
-		private $id_aviso;
-		private $cpf_dono;        
-		private $descricao;
-		private $status;
-
-		public function __get($atributo){
-
-			return $this->$atributo;
-		}
-
-		public function __set($atributo, $valor){
-
-			$this->$atributo = $valor;
-		}
-
-		public function gerar_aviso($dados_consulta){
+		public function gerarAviso($dados_consulta){
 
 			$dados_consulta['data'] = strtotime($dados_consulta['data']); 
 			$dados_consulta['data'] = date("d/m/Y", $dados_consulta['data']);
@@ -32,38 +18,32 @@
 			//(o aviso poderia vir por mensagem de texto no celular, através de uma API)
 			$query = "INSERT INTO avisos(cpf_dono, crmv_vet, descricao, status)VALUES(:cpf_dono, :crmv_vet, :descricao, 'criado')";
 
-			$stmt = $this->db->prepare($query);
-			
+			$stmt = $this->db->prepare($query);			
 			$stmt->bindValue(':cpf_dono', $dados_consulta['cpf']);
 			$stmt->bindValue(':crmv_vet', $dados_consulta['crmv_vet']);	
-			$stmt->bindValue(':descricao', $descricao);		
-
+			$stmt->bindValue(':descricao', $descricao);	
 			$stmt->execute();
 		}
 		
-		public function recuperar_avisos(){
+		public function recuperarAvisos($cpf){
 
 			$query = "SELECT id_aviso, descricao FROM avisos WHERE cpf_dono = :cpf_dono AND status = 'criado';";
 
-			$stmt = $this->db->prepare($query);
-			
-			$stmt->bindValue(':cpf_dono', $this->__get('cpf_dono'));		
-
+			$stmt = $this->db->prepare($query);			
+			$stmt->bindValue(':cpf_dono', $cpf);
 			$stmt->execute();
 
 			return $stmt->fetchAll(\PDO::FETCH_ASSOC);
 		}		
 		
-		public function avisos_visualizados($avisos){             
+		public function avisosVisualizados($avisos){             
 
             for ($i=0; $i < count($avisos); $i++) {                 					
 					
 				$query = "UPDATE avisos SET status = 'visualizado' WHERE id_aviso = :id_aviso;";
 
-				$stmt = $this->db->prepare($query);
-				
-				$stmt->bindValue(':id_aviso', $avisos[$i]);		
-
+				$stmt = $this->db->prepare($query);				
+				$stmt->bindValue(':id_aviso', $avisos[$i]);	
 				$stmt->execute();					
             }
 

@@ -1,10 +1,13 @@
 <?php 
 
 	namespace App\Controllers;
-
-	//recursos do miniframework
+	
 	use MF\Controller\Action;
 	use MF\Model\Container;
+	use App\Models\Entities\Veterinario;
+	use App\Models\Entities\Cliente;
+	use App\Models\Entities\Pet;
+	use App\Models\Entities\Consulta;
 
 	class AppController extends Action{
 
@@ -13,15 +16,12 @@
 		public function painel_vet(){
 
 			$this->verificaConexaoBanco();
-
 			$this->validaAutenticacao('veterinario');	
-
 			$this->set_layout_painel('veterinario');
 
 			$this->view->usuario_especial = false;
 
-			if($_SESSION['cpf_vet'] == '32222215021'){
-
+			if(unserialize($_SESSION['veterinario'])->__get('cpf') == '32222215021'){
 				$this->view->usuario_especial = true;	 			
 			}
 
@@ -30,12 +30,9 @@
 
 		public function controlar_agenda(){
 
-			$this->verificaConexaoBanco();			
-				
+			$this->verificaConexaoBanco();					
 			$this->validaAutenticacao('veterinario');	
-	
 			$this->set_layout_painel('veterinario');
-
 			$this->render('controlar_agenda', 'layout_painel');				
 		}
 
@@ -43,19 +40,11 @@
 
 			$this->validaAutenticacao('veterinario');
 
-			$intervalo = $_GET['intervalo'];			
+			$intervalo = $_GET['intervalo'];				
+			$crmv = unserialize($_SESSION['veterinario'])->__get('crmv');
 
-			$data_atual = date('Y-m-d');
-			
-			$cpf_vet = $_SESSION['cpf_vet'];
-
-			$consulta = Container::getModel('consulta');
-
-			$consulta->__set('data', $data_atual);			
-
-			$consultas = $consulta->recuperar_consultas($intervalo, $cpf_vet);
-
-			echo json_encode($consultas);			
+			$consultaDao = Container::getModelDao('consulta');
+			echo json_encode($consultaDao->recuperarConsultas($intervalo, $crmv));			
 		}
 
 		public function recuperar_horarios_livres(){			
@@ -63,37 +52,21 @@
 			$this->validaAutenticacao('veterinario');
 
 			$intervalo = $_GET['intervalo'];			
+			$crmv = unserialize($_SESSION['veterinario'])->__get('crmv');
 
-			$data_atual = date('Y-m-d');
-			
-			$cpf_vet = $_SESSION['cpf_vet'];
-
-			$consulta = Container::getModel('consulta');
-
-			$consulta->__set('data', $data_atual);			
-
-			$horarios_livres = $consulta->recuperar_horarios_livres($intervalo, $cpf_vet);				
-
-			echo json_encode($horarios_livres);			
+			$consultaDao = Container::getModelDao('consulta');
+			echo json_encode($consultaDao->recuperarHorariosLivres($intervalo, $crmv));			
 		}
 
 		public function recuperar_horarios_bloqueados(){			
 
 			$this->validaAutenticacao('veterinario');
 
-			$intervalo = $_GET['intervalo'];			
+			$intervalo = $_GET['intervalo'];				
+			$crmv = unserialize($_SESSION['veterinario'])->__get('crmv');
 
-			$data_atual = date('Y-m-d');
-			
-			$cpf_vet = $_SESSION['cpf_vet'];
-
-			$consulta = Container::getModel('consulta');
-
-			$consulta->__set('data', $data_atual);			
-
-			$horarios_bloqueados = $consulta->recuperar_horarios_bloqueados($intervalo, $cpf_vet);				
-
-			echo json_encode($horarios_bloqueados);			
+			$consultaDao = Container::getModelDao('consulta');
+			echo json_encode($consultaDao->recuperarHorariosBloqueados($intervalo, $crmv));			
 		}
 
 		public function cancelar_consultas(){			
@@ -102,35 +75,26 @@
 
 			$consultas = explode(',', $_POST['consultas']);		
 
-			$consulta = Container::getModel('consulta');						
-			
-			$resposta = $consulta->cancelar_consultas($consultas);				
-
-			echo json_encode($resposta);			
+			$consultaDao = Container::getModelDao('consulta');	
+			echo json_encode($consultaDao->cancelarConsultas($consultas));			
 		}		
 
 		public function bloquear_horarios_livres(){			
 
 			$this->validaAutenticacao('veterinario');
 
-			$cpf_vet = $_SESSION['cpf_vet'];
+			$crmv = unserialize($_SESSION['veterinario'])->__get('crmv');
 
-			$datas_horarios = explode(',', $_POST['datas_horarios_livres']);
-			
+			$datas_horarios = explode(',', $_POST['datas_horarios_livres']);			
 			$datas_horarios_bloquear = array();
 
-			foreach ($datas_horarios as $data_horario) {
-				
+			foreach ($datas_horarios as $data_horario) {				
 				$data_horario_bloquear = explode(' ', $data_horario);
-
 				$datas_horarios_bloquear[] = ['data' => $data_horario_bloquear[0],  'horario' => $data_horario_bloquear[1]];
 			}			
 
-			$consulta = Container::getModel('consulta');					
-
-			$resposta = $consulta->bloquear_horarios($datas_horarios_bloquear, $cpf_vet);				
-
-			echo json_encode($resposta);
+			$consultaDao = Container::getModelDao('consulta');	
+			echo json_encode($consultaDao->bloquearHorarios($datas_horarios_bloquear, $crmv));
 		}
 
 		public function liberar_horarios_bloqueados(){			
@@ -139,21 +103,15 @@
 
 			$horarios_bloqueados = explode(',', $_POST['horarios_bloqueados']);		
 
-			$consulta = Container::getModel('consulta');						
-
-			$resposta = $consulta->liberar_horarios($horarios_bloqueados);				
-
-			echo json_encode($resposta);			
+			$consultaDao = Container::getModelDao('consulta');	
+			echo json_encode($consultaDao->liberarHorarios($horarios_bloqueados));			
 		}
 
 		public function controlar_consultas(){
 
 			$this->verificaConexaoBanco();
-
-			$this->validaAutenticacao('veterinario');
-			
+			$this->validaAutenticacao('veterinario');			
 			$this->set_layout_painel('veterinario');
-
 			$this->render('controlar_consultas', 'layout_painel');
 		}
 
@@ -161,34 +119,28 @@
 
 			$this->validaAutenticacao('veterinario');
 			
-			$pesquisa = $_GET['pesquisa'];			
+			$filtro = $_GET['pesquisa'];			
 			
-			$pet = Container::getModel('pet');						
-
-			$resultado = $pet->pesquisa_pets($pesquisa);				
-
-			echo json_encode($resultado);			
+			$petDao = Container::getModelDao('pet');	
+			echo json_encode($petDao->pesquisarPets($filtro));			
 		}
 
 		public function prontuario(){
-
-			$this->validaAutenticacao('veterinario');
-				
+			
+			$this->validaAutenticacao('veterinario');				
 			$this->set_layout_painel('veterinario');
 
-			if(!isset($_GET['id_pet']) || !isset($_GET['nome_pet']) || !isset($_GET['nome_tutor']) || !isset($_GET['raca']) || 
-			!isset($_GET['especie']) || !isset($_GET['porte']) || !isset($_GET['data_nasc'])){
-
-				header('Location: /controlar_consultas');
-			}
-
-			try{				
+			try{	
+	
+				if(!isset($_GET['id_pet']) || !isset($_GET['nome_pet']) || !isset($_GET['nome_tutor']) || !isset($_GET['raca']) || 
+				!isset($_GET['especie']) || !isset($_GET['porte']) || !isset($_GET['data_nasc'])){
+					header('Location: /controlar_consultas');
+				}
 
 				$data_nasc = explode('-', $_GET['data_nasc']);
 				$data_nasc = $data_nasc[2] . '/' . $data_nasc[1] . '/' . $data_nasc[0];
 
 				$this->view->pet = array(
-
 					'id_pet' => $_GET['id_pet'],
 					'nome_pet' => $_GET['nome_pet'], 
 					'nome_tutor' => $_GET['nome_tutor'],
@@ -198,53 +150,37 @@
 					'data_nasc' => $data_nasc
 				);			
 				
-				$pet = Container::getModel('pet');	
-				
-				$pet->__set('id', $_GET['id_pet']);
+				$id_pet = $_GET['id_pet'];
 
-				$this->view->historico = $pet->recupera_historico();
+				$petDao = Container::getModelDao('pet');			
 
+				$this->view->historico = $petDao->recuperarHistorico($id_pet);
 				$this->render('prontuario', 'layout_painel');	
 				
 			}catch(\Error){
-
 				header('Location: /erro_banco');
 			}
 		}
 
-		public function realizar_consulta(){			
-
-			$this->validaAutenticacao('veterinario');			
-				
-			$data_atual = date('Y-m-d');
-			$hora_atual = date('H:i');
+		public function realizar_consulta(){		
 			
-			$cpf_vet = $_SESSION['cpf_vet'];
-
-			$consulta = Container::getModel('consulta');	
-			$pet = Container::getModel('pet');
+			$this->validaAutenticacao('veterinario');	
 			
-			$consulta->__set('id_pet', $_POST['id_pet']);
-			$consulta->__set('descricao', $_POST['descricao']);
-			$consulta->__set('data', $data_atual);
-			$consulta->__set('horario', $hora_atual);
-			$pet->__set('id', $_POST['id_pet']);
+			$veterinario = unserialize($_SESSION['veterinario']);
+			$pet = new Pet($_POST['id_pet'], null, null, null, null, null, null);
+			$consulta = new Consulta(null, date('Y-m-d'), date('H:i'), $_POST['descricao'], 'realizada', $veterinario, $pet);
+
+			$consultaDao = Container::getModelDao('consulta');	
+			$petDao = Container::getModelDao('pet');			
 
 			//realizar_consulta() insere a descrição da consulta caso a mesma já exista e esteja marcada para o dia atual
-			if($consulta->realizar_consulta($cpf_vet)){	
+			if(!$consultaDao->realizarConsulta($consulta)){	
+				//realizar_consulta_nao_agendada() cria uma nova consulta
+				$consulta->__set('status', 'realizada sem marcar');
+				$consultaDao->realizarConsultaNaoAgendada($consulta);
+			}
 
-				$historico_atualizado = $pet->recupera_historico();
-
-				echo json_encode($historico_atualizado);
-
-			}else{//realizar_consulta_nao_agendada() cria uma nova consulta
-				
-				$consulta->realizar_consulta_nao_agendada($cpf_vet);
-
-				$historico_atualizado = $pet->recupera_historico();
-
-				echo json_encode($historico_atualizado);
-			}					
+			echo json_encode($petDao->recuperarHistorico($pet->__get('id')));
 		}
 
 		//FUNCIONALIDADES EXCLUSIVAS PARA O VETERINÁRIO USUÁRIO ESPECIAL, COM CPF FAKE '32222215021'
@@ -252,13 +188,10 @@
 		public function cadastrar_vet(){
 
 			$this->verificaConexaoBanco();			
-			
 			$this->validaAutenticacaoEspecial();
-
 			$this->set_layout_painel('veterinario');
 			
 			$this->view->veterinario = array(
-
 				'nome' => '', 
 				'cpf' => '',
 				'telefone' => '',
@@ -269,50 +202,35 @@
 			);
 			
 			$this->view->erroCadastro = false;
-
 			$this->render('cadastrar_vet', 'layout_painel');
 		}
 
-		public function cadastrar_vet2(){		
-
-			$this->validaAutenticacaoEspecial();
-				
+		public function cadastrar_vet2(){
+			
+			$this->validaAutenticacaoEspecial();				
 			$this->set_layout_painel('veterinario');
 
-			if(!isset($_POST['nome']) || !isset($_POST['cpf']) || !isset($_POST['telefone']) || !isset($_POST['endereco'])
-			|| !isset($_POST['email']) || !isset($_POST['crmv']) || !isset($_POST['senha'])){
+			try{	
+				if(!isset($_POST['nome']) || !isset($_POST['cpf']) || !isset($_POST['telefone']) || !isset($_POST['endereco'])
+				|| !isset($_POST['email']) || !isset($_POST['crmv']) || !isset($_POST['senha'])){
+					header('Location: /cadastrar_vet');
+				}
 
-				header('Location: /cadastrar_vet');
-			}
-			
-			try{				
-				
-				//elimina a máscara do cpf
 				$cpf = preg_replace("/[^0-9]/", "", $_POST['cpf']);
 				$cpf = str_pad($cpf, 11, '0', STR_PAD_LEFT);
+
+				$veterinario = new Veterinario($cpf, $_POST['nome'], $_POST['telefone'], $_POST['email'], $_POST['senha'], $_POST['endereco'], $_POST['crmv']);
 				
-				$veterinario = Container::getModel('veterinario');
+				$veterinarioDao = Container::getModelDao('veterinario');				
 
-				$veterinario->__set('nome', $_POST['nome']);
-				$veterinario->__set('cpf',$cpf);
-				$veterinario->__set('telefone', $_POST['telefone']);
-				$veterinario->__set('endereco', $_POST['endereco']);
-				$veterinario->__set('email', $_POST['email']);
-				$veterinario->__set('crmv', $_POST['crmv']);
-				$veterinario->__set('senha', $_POST['senha']);
-
-				if($veterinario->validarCadastro()){
-					
-					$veterinario->salvar();						
+				if($veterinarioDao->validarCadastro($veterinario)){					
+					$veterinarioDao->salvar($veterinario);						
 					
 					$this->view->mensagem_sucesso = 'Veterinário(a) cadastrado com sucesso!';
-
 					$this->render('cadastro_sucesso', 'layout_painel');				
 
-				}else{
-					
+				}else{					
 					$this->view->veterinario = array(
-
 						'nome' => $_POST['nome'], 
 						'cpf' => $_POST['cpf'],
 						'telefone' => $_POST['telefone'],
@@ -323,58 +241,43 @@
 					);
 
 					$this->view->erroCadastro = true;
-
 					$this->render('cadastrar_vet', 'layout_painel');
 				}		
 				
 			}catch(\Error){
-
-				header('Location: /erro_banco');
+				header('Location: /erro_banco');				
 			}
 		}	
 
-		public function dashboard(){		
+		public function dashboard(){	
 			
-			try{
-
-				$this->validaAutenticacaoEspecial();
-				
-				$this->set_layout_painel('veterinario');
-
+			$this->validaAutenticacaoEspecial();				
+			$this->set_layout_painel('veterinario');
+			
+			try{				
 				//recuperar meses de referência para análise no dashboard
+				$dashboardDao = Container::getModelDao('dashboard');
 
-				$consulta = Container::getModel('consulta');
-
-				$idade_do_sistema = $consulta->idade_do_sistema();	
-				
+				$idade_do_sistema = $dashboardDao->idadeDoSistema();				
 				$data_ultima_consulta = $idade_do_sistema['data_ultima_consulta'];
 				$data_consulta = $idade_do_sistema['data_primeira_consulta'];
 
-				$lista_mes_ano = [];		
-
+				$lista_mes_ano = [];
 				$lista_mes_ano[] = date('Y-m', strtotime($data_consulta));				
 				
-				while(date('Y-m', strtotime($data_ultima_consulta)) != date('Y-m', strtotime($data_consulta))){				
-					
+				while(date('Y-m', strtotime($data_ultima_consulta)) != date('Y-m', strtotime($data_consulta))){						
 					$data_consulta = date('Y-m-d', strtotime($data_consulta . " + 1 month"));	
-
 					$lista_mes_ano[] = date('Y-m', strtotime($data_consulta));				
 				}
 
 				$this->view->meses_referencia = $lista_mes_ano;
-
-				//recuperar dados dos veterinários
-
-				$vet = Container::getModel('veterinario');				
-
-				$vets = $vet->recuperar_vets();			
-
-				$this->view->vets = $vets;
 				
+				$vetDao = Container::getModelDao('veterinario');
+
+				$this->view->vets = $vetDao->recuperarVets();				
 				$this->render('dashboard', 'layout_painel');
 				
 			}catch(\Error){
-
 				header('Location: /erro_banco');
 			}
 		}			
@@ -385,11 +288,8 @@
 
 			$mes_referencia = $_GET['mes_referencia'];
 
-			$consulta = Container::getModel('consulta');
-
-			$dados = $consulta->dados_mes($mes_referencia);
-
-			echo json_encode($dados);			
+			$dashboardDao = Container::getModelDao('dashboard');			
+			echo json_encode($dashboardDao->dadosMes($mes_referencia));			
 		}
 
 		public function recuperar_clientes(){			
@@ -398,45 +298,34 @@
 
 			$filtro = $_GET['filtro'];
 
-			$cliente = Container::getModel('cliente');				
-
-			$clientes = $cliente->recuperar_clientes($filtro);			
-
-			echo json_encode($clientes);			
+			$clienteDao = Container::getModelDao('cliente');
+			echo json_encode($clienteDao->recuperarClientes($filtro));			
 		}
 
 		//FUNCIONALIDADES PARA OS CLIENTES
 
-		public function painel_cli(){
+		public function painel_cli(){			
+			
+			$this->validaAutenticacao('cliente');
+			$this->set_layout_painel('cliente');
 
 			try{
-
-				$this->validaAutenticacao('cliente');		
-				
-				$this->set_layout_painel('cliente');
-
 				$this->view->pet_cadastrado = true;
-
-				$this->view->consultas_marcadas = '';
 				
-				$cliente = Container::getModel('cliente');
+				$petDao = Container::getModelDao('pet');
+				$clienteDao = Container::getModelDao('cliente');
 
-				$cliente->__set('cpf', $_SESSION['cpf_cli']);
+				$cpf = unserialize($_SESSION['cliente'])->__get('cpf');
 
-				if(empty($cliente->recuperarPetsCli())){
-					
+				if(empty($petDao->recuperarPetsCli($cpf))){					
 					$this->view->pet_cadastrado = false;
 				}
 
-				if(!empty($cliente->verifica_consultas_marcadas())){
-
-					$this->view->consultas_marcadas = $cliente->verifica_consultas_marcadas();
-				}
-
+				$consultas_marcadas = $clienteDao->verificarConsultasMarcadas($cpf);
+				$this->view->consultas_marcadas = !empty($consultas_marcadas) ? $consultas_marcadas : '';
 				$this->render('painel_cli', 'layout_painel');	
 				
 			}catch(\Error){
-
 				header('Location: /erro_banco');
 			}
 		}
@@ -445,11 +334,8 @@
 
 			$this->validaAutenticacao('cliente');
 
-			$aviso = Container::getModel('aviso');
-
-			$aviso->__set('cpf_dono', $_SESSION['cpf_cli']);
-
-			echo json_encode($aviso->recuperar_avisos());			
+			$avisoDao = Container::getModelDao('aviso');
+			echo json_encode($avisoDao->recuperarAvisos(unserialize($_SESSION['cliente'])->__get('cpf')));			
 		}
 
 		public function avisos_visualizados(){			
@@ -458,23 +344,17 @@
 
 			$avisos_visualizados = explode(',', $_POST['avisos_visualizados']);
 
-			$aviso = Container::getModel('aviso');
-
-			$resposta = $aviso->avisos_visualizados($avisos_visualizados);				
-
-			echo json_encode($resposta);			
+			$avisoDao = Container::getModelDao('aviso');
+			echo json_encode($avisoDao->avisosVisualizados($avisos_visualizados));			
 		}
 
 		public function cadastrar_pet(){
 
 			$this->verificaConexaoBanco();
-
-			$this->validaAutenticacao('cliente');	
-			
+			$this->validaAutenticacao('cliente');			
 			$this->set_layout_painel('cliente');
 			
 			$this->view->pet = array(
-
 				'nome' => '', 
 				'data_nasc' => '',
 				'raca' => '',
@@ -482,52 +362,37 @@
 				'porte' => ''
 			);
 			
-			$this->view->erroCadastro = false;			
-
+			$this->view->erroCadastro = false;
 			$this->render('cadastrar_pet', 'layout_painel');
 		}
 
-		public function cadastrar_pet2(){	
-
+		public function cadastrar_pet2(){
+			
 			$this->validaAutenticacao('cliente');
-
 			$this->set_layout_painel('cliente');
 
-			if(!isset($_POST['nome']) || !isset($_POST['data_nasc']) || !isset($_POST['raca']) || !isset($_POST['especie'])
-			|| !isset($_POST['porte'])){
+			try{		
+				if(!isset($_POST['nome']) || !isset($_POST['data_nasc']) || !isset($_POST['raca']) || !isset($_POST['especie'])
+				|| !isset($_POST['porte'])){
+					header('Location: /cadastrar_pet');
+				}
 
-				header('Location: /cadastrar_pet');
-			}
-
-			try{														
-				
-				$pet = Container::getModel('pet');
-
-				$data_nasc = $_POST['data_nasc'];			
-
+				$data_nasc = $_POST['data_nasc'];
 				list($dia, $mes, $ano) = explode("/", $data_nasc);
-
 				$data_nasc = $ano . '-' . $mes . '-' . $dia;
 
-				$pet->__set('nome', $_POST['nome']);
-				$pet->__set('cpf_dono', $_SESSION['cpf_cli']);
-				$pet->__set('data_nasc', $data_nasc);
-				$pet->__set('raca', $_POST['raca']);
-				$pet->__set('especie', $_POST['especie']);
-				$pet->__set('porte', $_POST['porte']);
+				$cliente = unserialize($_SESSION['cliente']);				
+				$pet = new Pet(null, $_POST['nome'], $data_nasc, $_POST['raca'], $_POST['especie'], $_POST['porte'], $cliente);
+				
+				$petDao = Container::getModelDao('pet');
 
-				if($pet->validarCadastro()){
-					
-					$pet->salvar();
-
-					$this->view->mensagem_sucesso = 'Pet cadastrado com sucesso!';
-					
+				if($petDao->validarCadastro($pet)){					
+					$petDao->salvar($pet);
+					$this->view->mensagem_sucesso = 'Pet cadastrado com sucesso!';					
 					$this->render('cadastro_sucesso', 'layout_painel');				
 
-				}else{
-					
+				}else{					
 					$this->view->pet = array(
-
 						'nome' => $_POST['nome'], 
 						'data_nasc' => $_POST['data_nasc'],
 						'raca' => $_POST['raca'],
@@ -536,12 +401,10 @@
 					);
 
 					$this->view->erroCadastro = true;
-
 					$this->render('cadastrar_pet', 'layout_painel');
 				}	
 				
 			}catch(\Error){
-
 				header('Location: /erro_banco');
 			}
 		}		
@@ -550,90 +413,65 @@
 
 			$this->validaAutenticacao('cliente');
 
-			$consulta = Container::getModel('consulta');
-
-			$consulta->__set('data', $_GET['data']);
-
-			$horarios_disponiveis = $consulta->verificar_datas_horarios_disponiveis();				
-
-			echo json_encode($horarios_disponiveis);			
+			$consultaDao = Container::getModelDao('consulta');
+			$veterinarioDao = Container::getModelDao('veterinario');			
+			echo json_encode($consultaDao->verificarDatasHorariosDisponiveis($_GET['data'], $veterinarioDao->recuperarVets()));			
 		}
 
 		public function verifica_veterinarios(){			
 
 			$this->validaAutenticacao('cliente');
 
-			$consulta = Container::getModel('consulta');			
-
-			$consulta->__set('data', $_GET['data']);
-			$consulta->__set('horario', $_GET['horario']);
-
-			$vets_disponiveis = $consulta->verificar_veterinarios_disponiveis();				
-
-			echo json_encode($vets_disponiveis);			
+			$consultaDao = Container::getModelDao('consulta');	
+			$veterinarioDao = Container::getModelDao('veterinario');
+			echo json_encode($consultaDao->verificarVeterinariosDisponiveis($_GET['data'], $_GET['horario'], $veterinarioDao->recuperarVets()));			
 		}
 
 		public function agendar_consulta(){
 
+			$this->validaAutenticacao('cliente');
+			$this->set_layout_painel('cliente');	
+
 			try{
-
-				$this->validaAutenticacao('cliente');
-
-				$this->set_layout_painel('cliente');
-				
-				$this->view->erro = isset($_GET['erro']) ? $_GET['erro'] : false;
-				
-				$cliente = Container::getModel('cliente');
-
-				$cliente->__set('cpf', $_SESSION['cpf_cli']);			 
-
+				$this->view->erro = isset($_GET['erro']) ? $_GET['erro'] : false;				
 				$this->view->data_atual = date('Y-m-d');
 
 				//só é possivel marcar uma consulta com no máximo 60 dias de antecedência
-				$intervalo_dias = 60;			
+				$intervalo_dias = 60;				
+				$this->view->data_maxima = date('Y-m-d', strtotime($this->view->data_atual . "+{$intervalo_dias} days"));	
 
-				$this->view->data_maxima = date('Y-m-d', strtotime($this->view->data_atual . "+{$intervalo_dias} days"));		
-
-				$this->view->pets = $cliente->recuperarPetsCli();			
-
+				$petDao = Container::getModelDao('pet');		 
+				$this->view->pets = $petDao->recuperarPetsCli(unserialize($_SESSION['cliente'])->__get('cpf'));		
 				$this->render('agendar_consulta', 'layout_painel');		
 				
 			}catch(\Error){
-
 				header('Location: /erro_banco');
 			}
 		}
 
 		public function agendar_consulta2(){	
 
+			$this->validaAutenticacao('cliente');
+			$this->set_layout_painel('cliente');
+
 			try{
 
-				$this->validaAutenticacao('cliente');	
-
-				$this->set_layout_painel('cliente');			
+				$pet = new Pet($_POST['pet'], null, null, null, null, null, null);			
+				$veterinario = new Veterinario(null, null, null, null, null, null, $_POST['veterinarios_d']);			
+				$consulta = new Consulta(null, $_POST['data_consulta'], $_POST['horario_consulta'], null, null, $veterinario, $pet);			
 				
-				$consulta = Container::getModel('consulta');		
-
-				$consulta->__set('data', $_POST['data_consulta']);
-				$consulta->__set('horario', $_POST['horario_consulta']);
-				$consulta->__set('crmv_vet', $_POST['veterinarios_d']);
-				$consulta->__set('id_pet', $_POST['pet']);		
+				$consultaDao = Container::getModelDao('consulta');
 				
-				if($consulta->validarCadastro()){
-
-					$consulta->salvar();
-
-					$this->view->mensagem_sucesso = 'Consulta marcada com sucesso!';
-					
+				if($consultaDao->validarCadastro($consulta)){
+					$consultaDao->salvar($consulta);
+					$this->view->mensagem_sucesso = 'Consulta marcada com sucesso!';					
 					$this->render('cadastro_sucesso', 'layout_painel');
 
 				}else{
-
 					header('Location:/agendar_consulta?erro=true');
 				}	
 				
-			}catch(\Error){
-
+			}catch(\Error){				
 				header('Location: /erro_banco');
 			}
 		}		
@@ -644,63 +482,43 @@
 
 			session_start();
 
-			if($usuario == 'cliente'){
-
-				if(empty($_SESSION['cpf_cli'])){
-
-					header('Location: /');
-				}
-
-			}else if($usuario == 'veterinario'){
-
-				if(empty($_SESSION['cpf_vet'])){
-
-					header('Location: /');
-				}
-			}			
+			if(!isset($_SESSION[$usuario])){
+				header('Location: /');				
+			}						
 		}			
 
 		public function validaAutenticacaoEspecial(){	
 			
 			session_start();
 
-			if($_SESSION['cpf_vet'] != '32222215021'){
-
+			if(!isset($_SESSION['veterinario']) || unserialize($_SESSION['veterinario'])->__get('cpf') != '32222215021'){
 				header('Location: /');
 			}
 		}
 
 		public function verificaConexaoBanco(){	
 
-			try{
-			
-				$cliente = Container::getModel('cliente');
+			try{			
+				$clienteDao = Container::getModelDao('cliente');
 
 			}catch(\Error){
-
 				header('Location: /erro_banco');
 			}
 		}
 
-		public function set_layout_painel($usuario){			
+		public function set_layout_painel($usuario){	
+			
+			$nome = unserialize($_SESSION[$usuario])->__get('nome');
+			$nome = strstr($nome, ' ', true);
 
 			if($usuario == 'cliente'){
-
-				$nome = $_SESSION['nome_cli'];
-				$nome = strstr($nome, ' ', true);
-
 				$this->view->link_menu = '/painel_cli';
 				$this->view->saudacao = 'Olá ' . $nome . '!';
-			}
 
-			if($usuario == 'veterinario'){
-
-				$nome = $_SESSION['nome_vet'];
-				$nome = strstr($nome, ' ', true);
-
+			}else if($usuario == 'veterinario'){
 				$this->view->link_menu = '/painel_vet';
 				$this->view->saudacao = 'Olá Dr(a) ' . $nome . '!';
-			}
+			}			
 		}
 	}
 

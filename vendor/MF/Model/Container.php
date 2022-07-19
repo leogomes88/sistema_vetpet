@@ -6,15 +6,10 @@
 
 	class Container{
 
-		public static function getModel($model){
-
-			//retornar o modelo já instanciado, com a conexão já estabelecidada
-			$class = "\\App\\Models\\" . ucfirst($model);
-
-			//instancia de conexao
-			$conn = Connection::getDb();
-
-			return new $class($conn);
+		public static function getModelDao($type){
+			
+			$class = "\\App\\Models\\DaoImpl\\" . ucfirst($type) . "Dao";
+			return new $class(Connection::getDb());
 		}
 	}
 ?>

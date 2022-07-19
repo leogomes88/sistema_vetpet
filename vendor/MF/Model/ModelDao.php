@@ -2,12 +2,11 @@
 
 	namespace MF\Model;
 
-	abstract class Model{
+	abstract class ModelDao{
 
 		protected $db;
 
 		public function __construct(\PDO $db){
-
 			$this->db = $db;
 		}
 	}
